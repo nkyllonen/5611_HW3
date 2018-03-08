@@ -118,7 +118,7 @@ bool World::setupGraphics()
 	phongProgram = util::LoadShader("Shaders/phongTex.vert", "Shaders/phongTex.frag");
 
 	//load in textures
-	tex0 = util::LoadTexture("textures/checker.bmp");
+	tex0 = util::LoadTexture("textures/checker2.bmp");
 	tex1 = util::LoadTexture("textures/grey_stones.bmp");
 
 	if (tex0 == -1 || tex1 == -1 || phongProgram == -1)
@@ -248,10 +248,10 @@ void World::init()
 
 	WorldObject* temp;
 
-	float x = 0, y = 0, z = 0;
+	float x = 0, y = 0, z = 0, disp = 0.5;
 
 	//place start and goal across from each other
-	pos = Vec3D(-width/2 + (double)rand()/RAND_MAX, -height/2 + (double)rand()/RAND_MAX, z);
+	pos = Vec3D(-width/2 + (double)rand()/RAND_MAX + disp, -height/2 + (double)rand()/RAND_MAX + disp, z);
 	temp = new WorldObject(pos);
 	temp->setSize(size);
 	temp->setVertexInfo(CUBE_START, CUBE_VERTS);
@@ -259,7 +259,7 @@ void World::init()
 	temp->setColor(start_color);
 	node_arr[0] = temp;
 
-	pos = Vec3D(width/2 - (double)rand()/RAND_MAX, height/2 - (double)rand()/RAND_MAX, z);
+	pos = Vec3D(width/2 - (double)rand()/RAND_MAX - disp, height/2 - (double)rand()/RAND_MAX - disp, z);
 	temp = new WorldObject(pos);
 	temp->setSize(size);
 	temp->setVertexInfo(CUBE_START, CUBE_VERTS);
