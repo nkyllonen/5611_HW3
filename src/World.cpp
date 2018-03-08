@@ -16,13 +16,26 @@ World::World(int w, int h)
 {
 	width = w;
 	height = h;
+
+	num_nodes = w*2;									//determine how many nodes we want to spawn
+	node_arr = new WorldObject*[num_nodes];
+
+	cout << "Allocated node_arr to length " << num_nodes << endl;
 }
 
 World::~World()
 {
 	delete[] modelData;
-	delete[] lineData;
+	//delete[] lineData;
 	delete floor;
+
+	//delete each ptr in
+	for (int i = 0; i < num_nodes; i++)
+	{
+		delete node_arr[i];
+	}
+
+	delete[] node_arr;
 }
 
 /*----------------------------*/
@@ -76,7 +89,7 @@ bool World::loadModelData()
 	}
 
 	modelData = new float[total_model_verts * 8];
-	cout << "Allocated modelData : " << total_model_verts * 8 << endl;
+	cout << "Allocated modelData : " << total_model_verts * 8 << endl << endl;
 	copy(cubeData, cubeData + CUBE_VERTS * 8, modelData);
 	copy(sphereData, sphereData + SPHERE_VERTS * 8, modelData + (CUBE_VERTS * 8));
 	delete[] cubeData;
@@ -199,11 +212,22 @@ void World::draw(Camera * cam)
 
 	glUniform1i(uniTexID, 0); //Set texture ID to use for floor
 	floor->draw(phongProgram);
+
+	//draw all nodes
+	glUniform1i(uniTexID, -1);
+
+	for (int i = 0; i < num_nodes; i++)
+	{
+		node_arr[i]->draw(phongProgram);
+	}
 }
 
-//
+/*--------------------------------------------------------------*/
+// init : initializes floor and random nodes
+/*--------------------------------------------------------------*/
 void World::init()
 {
+	//1. initialize floor
 	floor = new WorldObject(Vec3D(0,0,0));
 	floor->setSize(Vec3D(width, height, 0.1));			//width and height are x and y
 	floor->setVertexInfo(CUBE_START, CUBE_VERTS);
@@ -214,6 +238,52 @@ void World::init()
 	mat.setSpecular(glm::vec3(0, 0, 0));
 
 	floor->setMaterial(mat);
+
+	//2. initialize all nodes with random positions along floor
+	Vec3D size = Vec3D(0.5,0.5,0.5);
+	Vec3D pos = Vec3D();
+	Vec3D start_color = Vec3D(0,1,0);
+	Vec3D goal_color = Vec3D(1,0,0);
+	Vec3D other_color = Vec3D(0,0,0.5);
+
+	WorldObject* temp;
+
+	float x = 0, y = 0, z = 0;
+
+	//place start and goal across from each other
+	pos = Vec3D(-width/2 + (double)rand()/RAND_MAX, -height/2 + (double)rand()/RAND_MAX, z);
+	temp = new WorldObject(pos);
+	temp->setSize(size);
+	temp->setVertexInfo(CUBE_START, CUBE_VERTS);
+	temp->setMaterial(mat);//use same Material as floor
+	temp->setColor(start_color);
+	node_arr[0] = temp;
+
+	pos = Vec3D(width/2 - (double)rand()/RAND_MAX, height/2 - (double)rand()/RAND_MAX, z);
+	temp = new WorldObject(pos);
+	temp->setSize(size);
+	temp->setVertexInfo(CUBE_START, CUBE_VERTS);
+	temp->setMaterial(mat);//use same Material as floor
+	temp->setColor(goal_color);
+	node_arr[num_nodes-1] = temp;
+
+	for (int i = 1; i < num_nodes-1; i++)
+	{
+		x = ((double)rand()/RAND_MAX)*width - (width/2.0);
+		y = ((double)rand()/RAND_MAX)*height - (height/2.0);
+		pos = Vec3D(x,y,z);
+
+		temp = new WorldObject(pos);
+
+		temp->setSize(size);
+		temp->setVertexInfo(CUBE_START, CUBE_VERTS);
+		temp->setMaterial(mat);//use same Material as floor
+		temp->setColor(other_color);
+
+		node_arr[i] = temp;
+	}
+
+	//delete temp; //do I delete this after or would it mess with my last node?
 }
 
 /*----------------------------*/

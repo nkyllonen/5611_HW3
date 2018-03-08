@@ -64,6 +64,9 @@ private:
 	//Objects in the World
 	WorldObject* floor;
 
+	int num_nodes = 0;
+	WorldObject** node_arr;
+
 public:
 	//CONSTRUCTORS AND DESTRUCTORS
 	World();
