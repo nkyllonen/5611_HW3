@@ -1,9 +1,7 @@
-//////////////////////////////////
-//Blank_SDL Window (Base Code)
+///////////////////////////////////////////
+//CSCI 5611 - Multi-Agent Motion Planning
 //Nikki Kyllonen
-//--------------------------------
-//draws a blue background SDL window
-//////////////////////////////////
+///////////////////////////////////////////
 
 #include "glad.h"  //Include order can matter here
 
@@ -54,9 +52,6 @@ const float step_size = 0.15f;
 /*=============================*/
 // Helper Functions
 /*=============================*/
-/*=============================*/
-// Helper Functions
-/*=============================*/
 void onKeyDown(SDL_KeyboardEvent & event, Camera* cam, World* myWorld);
 void mouseMove(SDL_MouseMotionEvent & event, Camera * player, float horizontal_angle, float vertical_angle);
 
@@ -64,6 +59,19 @@ void mouseMove(SDL_MouseMotionEvent & event, Camera * player, float horizontal_a
 //							  MAIN
 /*==============================================================*/
 int main(int argc, char *argv[]) {
+	srand(time(0));
+
+	//CHECK FOR WIDTH AND HEIGHT VALUES
+	if (argc != 3)
+	{
+		cout << "\nERROR: Incorrect usage. Expected ./a.out WIDTH HEIGHT\n";
+		exit(0);
+	}
+
+	int w = atoi(argv[1]);
+	int h = atoi(argv[2]);
+	printf("Floor width: %i by height: %i\n", w, h);
+
 	/////////////////////////////////
 	//INITIALIZE SDL WINDOW
 	/////////////////////////////////
@@ -78,7 +86,7 @@ int main(int argc, char *argv[]) {
 		exit(0);
 	}
 
-	World* myWorld = new World();
+	World* myWorld = new World(w, h);
 
 	/////////////////////////////////
 	//LOAD MODEL DATA INTO WORLD
@@ -92,6 +100,8 @@ int main(int argc, char *argv[]) {
 		SDL_Quit();
 		exit(0);
 	}
+
+	myWorld->init();
 
 	/////////////////////////////////
 	//SETUP CAMERA

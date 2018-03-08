@@ -12,33 +12,23 @@ World::World()
 	height = 0;
 }
 
-World::World(int w, int h, int num)
+World::World(int w, int h)
 {
 	width = w;
 	height = h;
-	num_objects = num;
 }
 
 World::~World()
 {
 	delete[] modelData;
-	//delete floor;
+	delete[] lineData;
+	delete floor;
 }
 
 /*----------------------------*/
 // SETTERS
 /*----------------------------*/
-void World::setCubeIndices(int start, int tris)
-{
-	CUBE_START = start;
-	CUBE_VERTS = tris;
-}
 
-void World::setSphereIndices(int start, int tris)
-{
-	SPHERE_START = start;
-	SPHERE_VERTS = tris;
-}
 
 /*----------------------------*/
 // GETTERS
@@ -63,30 +53,30 @@ bool World::loadModelData()
 	//LOAD IN MODELS
 	/////////////////////////////////
 	//CUBE
-	int CUBE_VERTS = 0;
+	CUBE_VERTS = 0;
 	float* cubeData = util::loadModel("models/cube.txt", CUBE_VERTS);
-	cout << "\nNumber of vertices in cube model : " << CUBE_VERTS << endl;
-	total_verts += CUBE_VERTS;
-	setCubeIndices(0, CUBE_VERTS);
+	cout << "Number of vertices in cube model : " << CUBE_VERTS << endl;
+	total_model_verts += CUBE_VERTS;
 
 	//SPHERE
-	int SPHERE_VERTS = 0;
+	SPHERE_START = CUBE_VERTS;
 	float* sphereData = util::loadModel("models/sphere.txt", SPHERE_VERTS);
-	cout << "\nNumber of vertices in sphere model : " << SPHERE_VERTS << endl;
-	total_verts += SPHERE_VERTS;
-	setSphereIndices(CUBE_VERTS, SPHERE_VERTS);
+	cout << "Number of vertices in sphere model : " << SPHERE_VERTS << endl << endl;
+	total_model_verts += SPHERE_VERTS;
 
 	/////////////////////////////////
 	//BUILD MODELDATA ARRAY
 	/////////////////////////////////
 	if (!(cubeData != nullptr && sphereData != nullptr))
 	{
+		cout << "ERROR. Failed to load model(s)" << endl;
 		delete[] cubeData;
 		delete[] sphereData;
 		return false;
 	}
-	modelData = new float[total_verts * 8];
-	//copy data into modelData array
+
+	modelData = new float[total_model_verts * 8];
+	cout << "Allocated modelData : " << total_model_verts * 8 << endl;
 	copy(cubeData, cubeData + CUBE_VERTS * 8, modelData);
 	copy(sphereData, sphereData + SPHERE_VERTS * 8, modelData + (CUBE_VERTS * 8));
 	delete[] cubeData;
@@ -98,30 +88,27 @@ bool World::loadModelData()
 bool World::setupGraphics()
 {
 	/////////////////////////////////
-	//BUILD VERTEX ARRAY OBJECT
+	//BUILD CUBE&SPHERE VAO + VBOs
 	/////////////////////////////////
 	//This stores the VBO and attribute mappings in one object
-	glGenVertexArrays(1, &vao); //Create a VAO
-	glBindVertexArray(vao); //Bind the above created VAO to the current context
+	glGenVertexArrays(1, &model_vao); //Create a VAO
+	glBindVertexArray(model_vao); //Bind the model_vao to the current context
 
-	/////////////////////////////////
-	//BUILD VERTEX BUFFER OBJECT
-	/////////////////////////////////
 	//Allocate memory on the graphics card to store geometry (vertex buffer object)
-	glGenBuffers(1, vbo);  //Create 1 buffer called vbo
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]); //Set the vbo as the active array buffer (Only one buffer can be active at a time)
-	glBufferData(GL_ARRAY_BUFFER, total_verts * 8 * sizeof(float), modelData, GL_STATIC_DRAW); //upload vertices to vbo
+	glGenBuffers(1, model_vbo);  //Create 1 buffer called model_vbo
+	glBindBuffer(GL_ARRAY_BUFFER, model_vbo[0]); //Set the model_vbo as the active array buffer (Only one buffer can be active at a time)
+	glBufferData(GL_ARRAY_BUFFER, total_model_verts * 8 * sizeof(float), modelData, GL_STATIC_DRAW); //upload vertices to model_vbo
 
 	/////////////////////////////////
-	//SETUP SHADERS
+	//SETUP CUBE SHADERS (model_vao attributes --> bound to model_vbo[0])
 	/////////////////////////////////
-	shaderProgram = util::LoadShader("Shaders/phongTex.vert", "Shaders/phongTex.frag");
+	phongProgram = util::LoadShader("Shaders/phongTex.vert", "Shaders/phongTex.frag");
 
 	//load in textures
-	tex0 = util::LoadTexture("textures/wood.bmp");
+	tex0 = util::LoadTexture("textures/checker.bmp");
 	tex1 = util::LoadTexture("textures/grey_stones.bmp");
 
-	if (tex0 == -1 || tex1 == -1 || shaderProgram == -1)
+	if (tex0 == -1 || tex1 == -1 || phongProgram == -1)
 	{
 		cout << "\nCan't load texture(s)" << endl;
 		printf(strerror(errno));
@@ -129,20 +116,46 @@ bool World::setupGraphics()
 	}
 
 	//Tell OpenGL how to set fragment shader input
-	GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
-	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0);
+	GLint posAttrib = glGetAttribLocation(phongProgram, "position");
+	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0); //positions first
 	//Attribute, vals/attrib., type, normalized?, stride, offset
 	//Binds to VBO current GL_ARRAY_BUFFER
 	glEnableVertexAttribArray(posAttrib);
 
-	GLint normAttrib = glGetAttribLocation(shaderProgram, "inNormal");
-	glVertexAttribPointer(normAttrib, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+	GLint texAttrib = glGetAttribLocation(phongProgram, "inTexcoord");
+	glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); //texcoords second
+	glEnableVertexAttribArray(texAttrib);
+
+	GLint normAttrib = glGetAttribLocation(phongProgram, "inNormal");
+	glVertexAttribPointer(normAttrib, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float))); //normals last
 	glEnableVertexAttribArray(normAttrib);
 
-	GLint texAttrib = glGetAttribLocation(shaderProgram, "inTexcoord");
-	glEnableVertexAttribArray(texAttrib);
-	glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	/////////////////////////////////
+	//BUILD LINE VAO + VBO
+	/////////////////////////////////
+	/*glGenVertexArrays(1, &line_vao);
+	glBindVertexArray(line_vao); //Bind the line_vao to the current context
+	glGenBuffers(1, line_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, line_vbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, total_lines * 6 * sizeof(float), lineData, GL_STREAM_DRAW);
 
+	/////////////////////////////////
+	//SETUP LINE SHADERS
+	/////////////////////////////////
+	flatProgram = util::LoadShader("Shaders/flat.vert", "Shaders/flat.frag");
+
+	if (flatProgram == -1)
+	{
+		cout << "\nCan't load flat shaders(s)" << endl;
+		printf(strerror(errno));
+		return false;
+	}
+
+	//only passing in a position vec3 value into shader
+	GLint line_posAttrib = glGetAttribLocation(flatProgram, "position");
+	glVertexAttribPointer(line_posAttrib, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(line_posAttrib);
+	*/
 	glBindVertexArray(0); //Unbind the VAO in case we want to create a new one
 
 	glEnable(GL_DEPTH_TEST);
@@ -156,12 +169,12 @@ void World::draw(Camera * cam)
 	glClearColor(.2f, 0.4f, 0.8f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glUseProgram(shaderProgram); //Set the active shader (only one can be used at a time)
+	glUseProgram(phongProgram); //Set the active shader (only one can be used at a time)
 
 	//vertex shader uniforms
-	GLint uniView = glGetUniformLocation(shaderProgram, "view");
-	GLint uniProj = glGetUniformLocation(shaderProgram, "proj");
-	GLint uniTexID = glGetUniformLocation(shaderProgram, "texID");
+	GLint uniView = glGetUniformLocation(phongProgram, "view");
+	GLint uniProj = glGetUniformLocation(phongProgram, "proj");
+	GLint uniTexID = glGetUniformLocation(phongProgram, "texID");
 
 	//build view matrix from Camera
 	glm::mat4 view = glm::lookAt(
@@ -176,22 +189,31 @@ void World::draw(Camera * cam)
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex0);
-	glUniform1i(glGetUniformLocation(shaderProgram, "tex0"), 0);
+	glUniform1i(glGetUniformLocation(phongProgram, "tex0"), 0);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, tex1);
-	glUniform1i(glGetUniformLocation(shaderProgram, "tex1"), 1);
+	glUniform1i(glGetUniformLocation(phongProgram, "tex1"), 1);
 
-	glBindVertexArray(vao);
+	glBindVertexArray(model_vao);
 
-	/*for (int i = 0; i < width*height; i++)
-	{
-			glUniform1i(uniTexID, 0); //Set texture ID to use (0 = wood texture)
-			objects_array[i]->draw(cam, shaderProgram);
-	}//END for loop
+	glUniform1i(uniTexID, 0); //Set texture ID to use for floor
+	floor->draw(phongProgram);
+}
 
-	glUniform1i(uniTexID, 1); //Set texture ID to use for floor (1 = brick texture)
-	floor->draw(cam, shaderProgram);*/
+//
+void World::init()
+{
+	floor = new WorldObject(Vec3D(0,0,0));
+	floor->setSize(Vec3D(width, height, 0.1));			//width and height are x and y
+	floor->setVertexInfo(CUBE_START, CUBE_VERTS);
+
+	Material mat = Material();
+	mat.setAmbient(glm::vec3(0.7, 0.7, 0.7));
+	mat.setDiffuse(glm::vec3(0.7, 0.7, 0.7));
+	mat.setSpecular(glm::vec3(0, 0, 0));
+
+	floor->setMaterial(mat);
 }
 
 /*----------------------------*/

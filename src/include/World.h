@@ -35,35 +35,42 @@ class World{
 private:
 	int width;
 	int height;
-	int num_objects;
 
-	int total_verts = 0;
-	float* modelData;
-
-	//modelData indices
+	//modelData
 	int CUBE_START = 0;
 	int CUBE_VERTS = 0;
 	int SPHERE_START = 0;
 	int SPHERE_VERTS = 0;
 
+	int total_model_verts = 0;
+	float* modelData;
+
+	//lines
+	int total_lines = 0;
+	float* lineData;
+
 	//VAO and VBO GLuints
-	GLuint vao;
-	GLuint vbo[1];
+	GLuint model_vao;
+	GLuint model_vbo[1];
+	GLuint line_vao;
+	GLuint line_vbo[1];
 
 	//Shader and Texture GLuints
-	GLuint shaderProgram;
+	GLuint phongProgram;
+	GLuint flatProgram;
 	GLuint tex0;
 	GLuint tex1;
+
+	//Objects in the World
+	WorldObject* floor;
 
 public:
 	//CONSTRUCTORS AND DESTRUCTORS
 	World();
-	World(int w, int h, int num);
+	World(int w, int h);
 	~World();
 
 	//SETTERS
-	void setCubeIndices(int start, int tris);
-	void setSphereIndices(int start, int tris);
 
 	//GETTERS
 	int getWidth();
@@ -73,6 +80,7 @@ public:
 	bool loadModelData();
 	bool setupGraphics();
 	void draw(Camera * cam);
+	void init();
 
 };
 
