@@ -12,8 +12,6 @@ using namespace std;
 WorldObject::WorldObject()
 {
 	pos = Vec3D();
-	vel = Vec3D();
-	acc = Vec3D();
 	size = Vec3D(1, 1, 1);
 	start_vertex_index = 0;
 	total_vertices = 0;
@@ -23,8 +21,6 @@ WorldObject::WorldObject()
 WorldObject::WorldObject(Vec3D init_pos)
 {
 	pos = init_pos;
-	vel = Vec3D();
-	acc = Vec3D();
 	size = Vec3D(1, 1, 1);
 	start_vertex_index = 0;
 	total_vertices = 0;
@@ -41,16 +37,6 @@ WorldObject::~WorldObject()
 void WorldObject::setPos(Vec3D p)
 {
   pos = p;
-}
-
-void WorldObject::setVel(Vec3D v)
-{
-  vel = v;
-}
-
-void WorldObject::setAcc(Vec3D a)
-{
-  acc = a;
 }
 
 void WorldObject::setVertexInfo(int start, int total)
@@ -84,16 +70,6 @@ Vec3D WorldObject::getPos()
   return pos;
 }
 
-Vec3D WorldObject::getVel()
-{
-  return vel;
-}
-
-Vec3D WorldObject::getAcc()
-{
-  return acc;
-}
-
 Material WorldObject::getMaterial()
 {
 	return mat;
@@ -107,10 +83,6 @@ Vec3D WorldObject::getSize()
 /*----------------------------*/
 // VIRTUALS
 /*----------------------------*/
-int WorldObject::getType()
-{
-	return DEFAULT_WOBJ;
-}
 
 /*----------------------------*/
 // OTHERS

@@ -46,8 +46,8 @@ string vertFile = "Shaders/phong.vert";
 string fragFile = "Shaders/phong.frag";
 
 //other globals
-const float mouse_speed = 0.05f;
-const float step_size = 0.15f;
+const float mouse_speed = 0.005f;
+const float step_size = 0.2f;
 
 /*=============================*/
 // Helper Functions

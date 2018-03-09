@@ -6,17 +6,10 @@
 #include "Camera.h"
 #include "Material.h"
 
-enum WOBJ_type
-{
-	DEFAULT_WOBJ
-};
-
 class WorldObject
 {
 protected:
 	Vec3D pos;
-  Vec3D vel;
-  Vec3D acc;
 
 	Material mat;
 	Vec3D size;
@@ -31,8 +24,6 @@ public:
 
 	//SETTERS
 	void setPos(Vec3D p);
-	void setVel(Vec3D v);
-	void setAcc(Vec3D a);
 	void setVertexInfo(int start, int total);
 	void setMaterial(Material m);
 	void setSize(Vec3D s);
@@ -40,13 +31,10 @@ public:
 
 	//GETTERS
 	Vec3D getPos();
-	Vec3D getVel();
-	Vec3D getAcc();
 	Material getMaterial();
 	Vec3D getSize();
 
 	//VIRTUAL
-	virtual int getType();
 
 	//OTHER
 	void draw(GLuint shaderProgram); //shared draw function among WObjs

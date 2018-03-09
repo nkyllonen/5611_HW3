@@ -30,6 +30,7 @@
 #include "Util.h"
 
 #include "WorldObject.h"
+#include "PRM.h"
 
 class World{
 private:
@@ -66,6 +67,8 @@ private:
 
 	int num_nodes = 0;
 	WorldObject** node_arr;
+
+	PRM* myPRM;
 
 public:
 	//CONSTRUCTORS AND DESTRUCTORS
