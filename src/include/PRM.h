@@ -1,10 +1,10 @@
 #ifndef PRM_INCLUDED
 #define PRM_INCLUDED
 
-#include "WorldObject.h"
 #include "Node.h"
 #include "Material.h"
 #include "Vec3D.h"
+#include "Util.h"
 
 class PRM
 {
@@ -14,7 +14,7 @@ class PRM
     float connection_radius_sq = 4;
 
     int num_nodes = 0;
-  	WorldObject** node_arr;
+  	Node** node_arr;
     float node_size = 0.5;
     int num_connections = 0;
 
@@ -36,7 +36,8 @@ class PRM
     int generateNodes(int model_start, int model_verts);    //later pass in ptr to CSpace obj?
     int connectNodes();                                     //later pass in ptr to CSpace obj?
     void drawNodes(GLuint nodeShader);
-    void drawConnections();
+    void drawConnections(GLuint shaderProgram);
+    void loadLineVertices(float* lineData);
 
 };
 

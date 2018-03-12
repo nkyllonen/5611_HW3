@@ -1,8 +1,10 @@
 #version 150 core
 
+uniform vec3 color;
+
 out vec4 outColor;
 
 void main()
 {
-  outColor = vec4(0.5,0.5,0.5,1.0);
+  outColor = vec4(color.xyz,1.0);
 }

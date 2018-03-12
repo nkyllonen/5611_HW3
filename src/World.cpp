@@ -211,7 +211,7 @@ void World::draw(Camera * cam)
 
 	myPRM->drawNodes(phongProgram);
 
-	glUseProgram(flatProgram);
+	/*glUseProgram(flatProgram);
 	glBindVertexArray(line_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, line_vbo[0]); //Set the line_vbo as the active
 
@@ -219,12 +219,14 @@ void World::draw(Camera * cam)
 	GLint uniLineModel = glGetUniformLocation(flatProgram, "model");
 	GLint uniLineView = glGetUniformLocation(flatProgram, "view");
 	GLint uniLineProj = glGetUniformLocation(flatProgram, "proj");
+
 	glm::mat4 model;
 	glUniformMatrix4fv(uniLineModel, 1, GL_FALSE, glm::value_ptr(model));
 	glUniformMatrix4fv(uniLineView, 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(uniLineProj, 1, GL_FALSE, glm::value_ptr(proj));
 
 	myPRM->drawConnections();
+	*/
 }
 
 /*--------------------------------------------------------------*/
@@ -253,38 +255,9 @@ void World::init()
 	lineData = new float[total_lines * 6]; //3 coords per endpts of each spring (3 x 2)
 	cout << "\nAllocated lineData : " << total_lines * 6 << endl;
 
-	loadLineVertices();
+	myPRM->loadLineVertices(lineData);
 }
 
 /*----------------------------*/
 // PRIVATE FUNCTIONS
 /*----------------------------*/
-/*--------------------------------------------------------------*/
-// loadLineVertices : loop through nodes and connections
-//											and plug positions into lineData
-/*--------------------------------------------------------------*/
-void World::loadLineVertices()
-{
-	int count = 0, i_connections = 0;
-	Vec3D pi;
-	Vec3D pii;
-	vector<Node*> neighbors;
-	Node* node;
-
-	for (int i = 0; i < num_nodes; i++)
-	{
-		//go through each node's list of connections
-		node = (Node*)  node_arr[i];
-		neighbors = node->neighbor_nodes;
-		i_connections = neighbors.size();
-		pi = node_arr[i]->getPos();
-
-		for (int c = 0; c < i_connections; c++)
-		{
-			pii = neighbors[c]->getPos();
-
-			util::loadVecValues(lineData, pi, count);
-			util::loadVecValues(lineData, pii, count);
-		}
-	}
-}//END loadLineVertices

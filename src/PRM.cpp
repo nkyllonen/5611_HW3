@@ -13,7 +13,7 @@ PRM::PRM(int w, int h, int num)
   width = w;
   height = h;
   num_nodes = num;
-  node_arr = new WorldObject*[num_nodes];
+  node_arr = new Node*[num_nodes];
   cout << "Allocated node_arr to length " << num_nodes << endl;
 }
 
@@ -56,30 +56,35 @@ int PRM::generateNodes(int model_start, int model_verts)
 	Vec3D other_color = Vec3D(0,0,0.5);
 
   Material mat = Material();
-	mat.setAmbient(glm::vec3(0.7, 0.7, 0.7));
-	mat.setDiffuse(glm::vec3(0.7, 0.7, 0.7));
 	mat.setSpecular(glm::vec3(0, 0, 0));
 
-	WorldObject* temp;
-
 	float x = 0, y = 0, z = 0;
+  Node* temp;
 
 	//place start and goal across from each other
 	pos = Vec3D(-width/2 + (double)rand()/RAND_MAX + node_size, -height/2 + (double)rand()/RAND_MAX + node_size, z);
-	temp = new WorldObject(pos);
-	temp->setSize(size);
+	temp = new Node(pos);
+	temp->size = size;
 	temp->setVertexInfo(model_start, model_verts);
-	temp->setMaterial(mat);//use same Material as floor
-	temp->setColor(start_color);
+
+  mat.setAmbient(util::vec3DtoGLM(start_color));
+  mat.setDiffuse(util::vec3DtoGLM(start_color));
+	temp->mat = mat;
 	node_arr[0] = temp;
 
 	pos = Vec3D(width/2 - (double)rand()/RAND_MAX - node_size, height/2 - (double)rand()/RAND_MAX - node_size, z);
-	temp = new WorldObject(pos);
-	temp->setSize(size);
+	temp = new Node(pos);
+  temp->size = size;
 	temp->setVertexInfo(model_start, model_verts);
-	temp->setMaterial(mat);//use same Material as floor
-	temp->setColor(goal_color);
+
+  mat.setAmbient(util::vec3DtoGLM(goal_color));
+  mat.setDiffuse(util::vec3DtoGLM(goal_color));
+	temp->mat = mat;
 	node_arr[num_nodes-1] = temp;
+
+  //set color for other nodes
+  mat.setAmbient(util::vec3DtoGLM(other_color));
+  mat.setDiffuse(util::vec3DtoGLM(other_color));
 
 	for (int i = 1; i < num_nodes-1; i++)
 	{
@@ -88,12 +93,11 @@ int PRM::generateNodes(int model_start, int model_verts)
 		y = ((double)rand()/RAND_MAX)*(height - node_size) - (height/2.0);
 		pos = Vec3D(x,y,z);
 
-		temp = new WorldObject(pos);
+		temp = new Node(pos);
 
-		temp->setSize(size);
-		temp->setVertexInfo(model_start, model_verts);
-		temp->setMaterial(mat);
-		temp->setColor(other_color);
+    temp->size = size;
+  	temp->setVertexInfo(model_start, model_verts);
+  	temp->mat = mat;
 
 		node_arr[i] = temp;
 	}
@@ -113,17 +117,14 @@ int PRM::connectNodes()
     {
       if (k != i) //don't check against itself
       {
-        dist = node_arr[i]->getPos() - node_arr[k]->getPos();
+        dist = node_arr[i]->pos - node_arr[k]->pos;
         len_sq = dotProduct(dist, dist);
 
         if (len_sq <= connection_radius_sq)
         {
           //TODO: figure out if path connecting nodes is valid in CSpace
           printf("--connecting node[%i] with node[%i]--\n", i, k);
-          Node* temp = (Node*) node_arr[i];
-          Node* tempk = (Node*) node_arr[k];
-          //temp->addNeighbor((Node*) node_arr[k]);
-          temp->neighbor_nodes.push_back(tempk);
+          node_arr[i]->neighbor_nodes.push_back(node_arr[k]);
           num_connections++;
           printf("--->num_connections = %i\n", num_connections);
         }
@@ -142,8 +143,42 @@ void PRM::drawNodes(GLuint nodeShader)
   }
 }
 
-void PRM::drawConnections()
+void PRM::drawConnections(GLuint shaderProgram)
 {
+  glm::vec3 color = glm::vec3(0.5,0.5,0.5);
+
+  //fragment shader uniform -> color
+	GLint uniform_color = glGetUniformLocation(shaderProgram, "color");
+  glUniform3f(uniform_color, color[0], color[1], color[2]);
+
   glLineWidth(2);
 	glDrawArrays(GL_LINES, 0, num_connections * 2);
 }
+
+/*--------------------------------------------------------------*/
+// loadLineVertices : loop through nodes and connections
+//											and plug positions into lineData
+/*--------------------------------------------------------------*/
+void PRM::loadLineVertices(float* lineData)
+{
+	int count = 0, i_connections = 0;
+	Vec3D pi;
+	Vec3D pii;
+	vector<Node*> neighbors;
+
+	for (int i = 0; i < num_nodes; i++)
+	{
+		//go through each node's list of connections
+		neighbors = node_arr[i]->neighbor_nodes;
+		i_connections = neighbors.size();
+		pi = node_arr[i]->pos;
+
+		for (int c = 0; c < i_connections; c++)
+		{
+			pii = neighbors[c]->pos;
+
+			util::loadVecValues(lineData, pi, count);
+			util::loadVecValues(lineData, pii, count);
+		}
+	}
+}//END loadLineVertices

@@ -10,7 +10,6 @@ class WorldObject
 {
 protected:
 	Vec3D pos;
-
 	Material mat;
 	Vec3D size;
 	int start_vertex_index;	//index where vertices start in modelData array
