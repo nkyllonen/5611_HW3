@@ -7,11 +7,15 @@
 class Node : public WorldObject
 {
 private:
-  std::vector<Node*> neighbor_nodes;
 
 public:
+  //PUBLIC VARIABLES
+  std::vector<Node*> neighbor_nodes;
+
+  //CONSTRUCTORS + DESTRUCTORS
   Node();
   Node(Vec3D init_pos);
+  ~Node();
 
   //OTHERS
   void addNeighbor(Node* n);

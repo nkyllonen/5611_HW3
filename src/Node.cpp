@@ -13,6 +13,14 @@ Node::Node(Vec3D init_pos) : WorldObject(init_pos)
 
 }
 
+Node::~Node()
+{
+  for (int i = 0; i < neighbor_nodes.size(); i++)
+  {
+    delete neighbor_nodes[i];
+  }
+}
+
 /*----------------------------*/
 // OTHERS
 /*----------------------------*/

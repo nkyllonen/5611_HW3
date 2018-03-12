@@ -81,8 +81,10 @@ bool World::loadModelData()
 
 	modelData = new float[total_model_verts * 8];
 	cout << "Allocated modelData : " << total_model_verts * 8 << endl << endl;
+
 	copy(cubeData, cubeData + CUBE_VERTS * 8, modelData);
 	copy(sphereData, sphereData + SPHERE_VERTS * 8, modelData + (CUBE_VERTS * 8));
+
 	delete[] cubeData;
 	delete[] sphereData;
 	return true;
@@ -137,11 +139,11 @@ bool World::setupGraphics()
 	/////////////////////////////////
 	//BUILD LINE VAO + VBO
 	/////////////////////////////////
-	/*glGenVertexArrays(1, &line_vao);
+	glGenVertexArrays(1, &line_vao);
 	glBindVertexArray(line_vao); //Bind the line_vao to the current context
 	glGenBuffers(1, line_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, line_vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, total_lines * 6 * sizeof(float), lineData, GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, total_lines * 6 * sizeof(float), lineData, GL_STATIC_DRAW);
 
 	/////////////////////////////////
 	//SETUP LINE SHADERS
@@ -159,7 +161,7 @@ bool World::setupGraphics()
 	GLint line_posAttrib = glGetAttribLocation(flatProgram, "position");
 	glVertexAttribPointer(line_posAttrib, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(line_posAttrib);
-	*/
+
 	glBindVertexArray(0); //Unbind the VAO in case we want to create a new one
 
 	glEnable(GL_DEPTH_TEST);
@@ -204,10 +206,25 @@ void World::draw(Camera * cam)
 	glUniform1i(uniTexID, 0); //Set texture ID to use for floor
 	floor->draw(phongProgram);
 
-	//draw all nodes
+	//draw PRM
 	glUniform1i(uniTexID, -1);
 
-	myPRM->draw(phongProgram);
+	myPRM->drawNodes(phongProgram);
+
+	glUseProgram(flatProgram);
+	glBindVertexArray(line_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, line_vbo[0]); //Set the line_vbo as the active
+
+	//new uniforms for the flat shading program
+	GLint uniLineModel = glGetUniformLocation(flatProgram, "model");
+	GLint uniLineView = glGetUniformLocation(flatProgram, "view");
+	GLint uniLineProj = glGetUniformLocation(flatProgram, "proj");
+	glm::mat4 model;
+	glUniformMatrix4fv(uniLineModel, 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(uniLineView, 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(uniLineProj, 1, GL_FALSE, glm::value_ptr(proj));
+
+	myPRM->drawConnections();
 }
 
 /*--------------------------------------------------------------*/
@@ -216,7 +233,7 @@ void World::draw(Camera * cam)
 void World::init()
 {
 	//1. initialize floor
-	floor = new WorldObject(Vec3D(0,0,0));
+	floor = new WorldObject(Vec3D(0,-0.1,0));				//set floor slightly lower so there's no issues displaying lines on top
 	floor->setSize(Vec3D(width, height, 0.1));			//width and height are x and y
 	floor->setVertexInfo(CUBE_START, CUBE_VERTS);
 
@@ -228,9 +245,46 @@ void World::init()
 	floor->setMaterial(mat);
 
 	//2. initialize all nodes with random positions along floor
-	myPRM->generateNodes(CUBE_START, CUBE_VERTS);
+	num_nodes = myPRM->generateNodes(CUBE_START, CUBE_VERTS);
+	cout << "Generated " << num_nodes << " nodes" << endl;
+	total_lines = myPRM->connectNodes();
+	cout << "Generated " << total_lines << " connections between nodes" << endl;
+
+	lineData = new float[total_lines * 6]; //3 coords per endpts of each spring (3 x 2)
+	cout << "\nAllocated lineData : " << total_lines * 6 << endl;
+
+	loadLineVertices();
 }
 
 /*----------------------------*/
 // PRIVATE FUNCTIONS
 /*----------------------------*/
+/*--------------------------------------------------------------*/
+// loadLineVertices : loop through nodes and connections
+//											and plug positions into lineData
+/*--------------------------------------------------------------*/
+void World::loadLineVertices()
+{
+	int count = 0, i_connections = 0;
+	Vec3D pi;
+	Vec3D pii;
+	vector<Node*> neighbors;
+	Node* node;
+
+	for (int i = 0; i < num_nodes; i++)
+	{
+		//go through each node's list of connections
+		node = (Node*)  node_arr[i];
+		neighbors = node->neighbor_nodes;
+		i_connections = neighbors.size();
+		pi = node_arr[i]->getPos();
+
+		for (int c = 0; c < i_connections; c++)
+		{
+			pii = neighbors[c]->getPos();
+
+			util::loadVecValues(lineData, pi, count);
+			util::loadVecValues(lineData, pii, count);
+		}
+	}
+}//END loadLineVertices

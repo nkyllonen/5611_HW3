@@ -4,48 +4,51 @@
 
 class Vec3D
 {
-public:
-	//CONSTRUCTORS AND DESTRUCTORS
-	Vec3D();
-	Vec3D(float xx, float yy, float zz);
-	~Vec3D();
+	private:
 
-	//SETTERS
-	void setX(float xx);
-	void setY(float yy);
-	void setZ(float zz);
+	public:
+		//PUBLIC VARIABLES
+		float x;
+		float y;
+		float z;
 
-	//GETTERS
-	float getX();
-	float getY();
-	float getZ();
-	float getMagnitude();
+		//CONSTRUCTORS AND DESTRUCTORS
+		Vec3D();
+		Vec3D(float xx, float yy, float zz);
+		~Vec3D();
 
-	//OPERATORS
-	//Component-wise addition of coordinates
-	friend Vec3D operator+ (const Vec3D& a, const Vec3D& b);
+		//SETTERS
+		void setX(float xx);
+		void setY(float yy);
+		void setZ(float zz);
 
-	//Component-wise subtraction of coordinates
-	friend Vec3D operator- (const Vec3D& a, const Vec3D& b);
+		//GETTERS
+		float getX();
+		float getY();
+		float getZ();
+		float getMagnitude();
 
-	//Component-wise multiplication
-	friend Vec3D operator* (float f, const Vec3D& a);
+		//OPERATORS
+		//Component-wise addition of coordinates
+		friend Vec3D operator+ (const Vec3D& a, const Vec3D& b);
 
-	//Component-wise multiplication
-	friend Vec3D operator* (const Vec3D& a, const Vec3D& b);
+		//Component-wise subtraction of coordinates
+		friend Vec3D operator- (const Vec3D& a, const Vec3D& b);
 
-	//Component-wise multiplication (dot product)
-	friend float dotProduct(const Vec3D& a, const Vec3D& b);
+		//Component-wise multiplication
+		friend Vec3D operator* (float f, const Vec3D& a);
 
-	//OTHERS
-	void normalize();
-	friend Vec3D cross(const Vec3D& a, const Vec3D& b);
-	void print();
+		//Component-wise multiplication
+		friend Vec3D operator* (const Vec3D& a, const Vec3D& b);
 
-private:
-	float x;
-	float y;
-	float z;
+		//Component-wise multiplication (dot product)
+		friend float dotProduct(const Vec3D& a, const Vec3D& b);
+
+		//OTHERS
+		void normalize();
+		friend Vec3D cross(const Vec3D& a, const Vec3D& b);
+		void print();
+
 };
 
 #endif

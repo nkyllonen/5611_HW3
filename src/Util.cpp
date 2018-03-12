@@ -209,3 +209,13 @@ GLuint util::LoadTexture(const char * texFile)
 
 	return tex;
 }
+
+/*--------------------------------------------------------------*/
+// loadVecValues :
+/*--------------------------------------------------------------*/
+void util::loadVecValues(float* arr, Vec3D v, int& start)
+{
+	arr[start++] = v.x;
+	arr[start++] = v.y;
+	arr[start++] = v.z;
+}

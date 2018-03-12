@@ -31,7 +31,7 @@ PRM::~PRM()
 /*----------------------------*/
 // SETTERS
 /*----------------------------*/
-void PRM::setNumber(int n)
+void PRM::setNumNodes(int n)
 {
   num_nodes = n;
 }
@@ -39,7 +39,7 @@ void PRM::setNumber(int n)
 /*----------------------------*/
 // GETTERS
 /*----------------------------*/
-int PRM::getNumber()
+int PRM::getNumNodes()
 {
   return num_nodes;
 }
@@ -47,7 +47,7 @@ int PRM::getNumber()
 /*----------------------------*/
 // OTHERS
 /*----------------------------*/
-void PRM::generateNodes(int model_start, int model_verts)
+int PRM::generateNodes(int model_start, int model_verts)
 {
   Vec3D size = Vec3D(node_size, node_size, node_size);
 	Vec3D pos = Vec3D();
@@ -97,17 +97,53 @@ void PRM::generateNodes(int model_start, int model_verts)
 
 		node_arr[i] = temp;
 	}
+
+  return num_nodes;
 }
 
-void PRM::connectNodes()
+int PRM::connectNodes()
 {
+  Vec3D dist;
+  float len_sq = 0;
 
-}
+  for (int i = 0; i < num_nodes; i++)
+  {
+    //compare node_arr[i] against other nodes
+    for (int k = 0; k < num_nodes; k++)
+    {
+      if (k != i) //don't check against itself
+      {
+        dist = node_arr[i]->getPos() - node_arr[k]->getPos();
+        len_sq = dotProduct(dist, dist);
 
-void PRM::draw(GLuint shaderProgram)
+        if (len_sq <= connection_radius_sq)
+        {
+          //TODO: figure out if path connecting nodes is valid in CSpace
+          printf("--connecting node[%i] with node[%i]--\n", i, k);
+          Node* temp = (Node*) node_arr[i];
+          Node* tempk = (Node*) node_arr[k];
+          //temp->addNeighbor((Node*) node_arr[k]);
+          temp->neighbor_nodes.push_back(tempk);
+          num_connections++;
+          printf("--->num_connections = %i\n", num_connections);
+        }
+      }
+    }//END for-k
+  }//END for-i
+
+  return num_connections;
+}//END connectNodes
+
+void PRM::drawNodes(GLuint nodeShader)
 {
   for (int i = 0; i < num_nodes; i++)
-	{
-		node_arr[i]->draw(shaderProgram);
-	}
+  {
+    node_arr[i]->draw(nodeShader);
+  }
+}
+
+void PRM::drawConnections()
+{
+  glLineWidth(2);
+	glDrawArrays(GL_LINES, 0, num_connections * 2);
 }

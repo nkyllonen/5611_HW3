@@ -48,7 +48,11 @@ namespace util
 	//http://www.nexcius.net/2012/11/20/how-to-load-a-glsl-shader-in-opengl-using-c/
 	GLuint LoadShader(const char *vertex_path, const char *fragment_path);
 
+	//
 	GLuint LoadTexture(const char* texFile);
+
+	//
+	void loadVecValues(float* arr, Vec3D v, int& start);
 }
 
 #endif

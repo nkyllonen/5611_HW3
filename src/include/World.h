@@ -42,7 +42,6 @@ private:
 	int CUBE_VERTS = 0;
 	int SPHERE_START = 0;
 	int SPHERE_VERTS = 0;
-
 	int total_model_verts = 0;
 	float* modelData;
 
@@ -69,6 +68,9 @@ private:
 	WorldObject** node_arr;
 
 	PRM* myPRM;
+
+	//PRIVTE FUNCTIONS
+	void loadLineVertices();
 
 public:
 	//CONSTRUCTORS AND DESTRUCTORS
