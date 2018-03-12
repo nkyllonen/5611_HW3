@@ -11,11 +11,11 @@ class PRM
   private:
     int width = 1;
     int height = 1;
-    float connection_radius_sq = 4;
+    float connection_radius_sq = 10;
 
     int num_nodes = 0;
   	Node** node_arr;
-    float node_size = 0.5;
+    float node_size = 0.25;
     int num_connections = 0;
 
   public:

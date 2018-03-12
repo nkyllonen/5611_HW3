@@ -15,6 +15,7 @@ PRM::PRM(int w, int h, int num)
   num_nodes = num;
   node_arr = new Node*[num_nodes];
   cout << "Allocated node_arr to length " << num_nodes << endl;
+  connection_radius_sq = w; //so we get everything connecting to each other
 }
 
 PRM::~PRM()
@@ -123,10 +124,10 @@ int PRM::connectNodes()
         if (len_sq <= connection_radius_sq)
         {
           //TODO: figure out if path connecting nodes is valid in CSpace
-          printf("--connecting node[%i] with node[%i]--\n", i, k);
+          //printf("--connecting node[%i] with node[%i]--\n", i, k);
           node_arr[i]->neighbor_nodes.push_back(node_arr[k]);
           num_connections++;
-          printf("--->num_connections = %i\n", num_connections);
+          //printf("--->num_connections = %i\n", num_connections);
         }
       }
     }//END for-k
@@ -181,4 +182,6 @@ void PRM::loadLineVertices(float* lineData)
 			util::loadVecValues(lineData, pii, count);
 		}
 	}
+
+  cout << "LineData values loaded" << endl;
 }//END loadLineVertices

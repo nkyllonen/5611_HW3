@@ -211,7 +211,7 @@ void World::draw(Camera * cam)
 
 	myPRM->drawNodes(phongProgram);
 
-	/*glUseProgram(flatProgram);
+	glUseProgram(flatProgram);
 	glBindVertexArray(line_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, line_vbo[0]); //Set the line_vbo as the active
 
@@ -225,8 +225,7 @@ void World::draw(Camera * cam)
 	glUniformMatrix4fv(uniLineView, 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(uniLineProj, 1, GL_FALSE, glm::value_ptr(proj));
 
-	myPRM->drawConnections();
-	*/
+	myPRM->drawConnections(flatProgram);
 }
 
 /*--------------------------------------------------------------*/
@@ -235,7 +234,7 @@ void World::draw(Camera * cam)
 void World::init()
 {
 	//1. initialize floor
-	floor = new WorldObject(Vec3D(0,-0.1,0));				//set floor slightly lower so there's no issues displaying lines on top
+	floor = new WorldObject(Vec3D(0,0,-0.1));				//set floor slightly lower so there's no issues displaying lines on top
 	floor->setSize(Vec3D(width, height, 0.1));			//width and height are x and y
 	floor->setVertexInfo(CUBE_START, CUBE_VERTS);
 
