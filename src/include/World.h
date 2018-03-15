@@ -31,6 +31,7 @@
 
 #include "WorldObject.h"
 #include "PRM.h"
+#include "CSpace.h"
 
 #include "timerutil.h"
 #include "tiny_obj_loader.h"
@@ -77,6 +78,7 @@ private:
 	WorldObject* floor;
 	int num_nodes = 0;
 	PRM* myPRM;
+	CSpace* myCSpace;
 
 public:
 	//CONSTRUCTORS AND DESTRUCTORS

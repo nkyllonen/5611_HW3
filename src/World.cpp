@@ -15,6 +15,7 @@ World::World()
 	height = 0;
 
 	myPRM = new PRM();
+	myCSpace = new CSpace();
 }
 
 World::World(int w, int h)
@@ -23,6 +24,7 @@ World::World(int w, int h)
 	height = h;
 
 	myPRM = new PRM(w, h, w*2);
+	myCSpace = new CSpace();
 }
 
 World::~World()
@@ -31,6 +33,7 @@ World::~World()
 	//delete[] lineData;
 	delete floor;
 	delete myPRM;
+	delete myCSpace;
 }
 
 /*----------------------------*/
@@ -247,6 +250,11 @@ bool World::setupGraphics()
 
 	glBindVertexArray(0);
 	glEnable(GL_DEPTH_TEST);
+
+	cout << "--------------------------------------------------" << endl;
+	cout << "--------------GRAPHICS SETUP COMPLETE-------------" << endl;
+	cout << "--------------------------------------------------" << endl;
+
 	return true;
 }
 
@@ -290,8 +298,14 @@ void World::draw(Camera * cam)
 
 	//draw PRM
 	glUniform1i(uniTexID, -1);
-
 	myPRM->drawNodes(phongProgram);
+
+	//draw objs in CSpace
+	glBindVertexArray(obj_vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj_ibo[0]);
+	glUniform1i(uniTexID, -1);
+
+	myCSpace->draw(phongProgram);
 
 	glUseProgram(flatProgram);
 	glBindVertexArray(line_vao);
@@ -337,6 +351,15 @@ void World::init()
 	cout << "\nAllocated lineData : " << total_lines * 6 << endl;
 
 	myPRM->loadLineVertices(lineData);
+
+	//3. add center cylinder to CSpace
+	WorldObject* obj = new WorldObject(Vec3D(0,0,0));
+	obj->setVertexInfo(0, total_obj_triangles);
+	obj->setMaterial(mat);
+	obj->setSize(Vec3D(1,1,1));
+	obj->hasIBO = true;
+
+	myCSpace->addObstacle(obj);
 }
 
 /*----------------------------*/
