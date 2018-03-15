@@ -19,13 +19,17 @@ SDL_Window* util::initSDL(SDL_GLContext& context, float width, float height)
 	//Create a context to draw in
 	context = SDL_GL_CreateContext(window);
 
-	if (gladLoadGLLoader(SDL_GL_GetProcAddress)) {
-		printf("\nOpenGL loaded\n");
+	if (gladLoadGLLoader(SDL_GL_GetProcAddress))
+	{
+		printf("--------------------------------------------------\n");
+		printf("OpenGL loaded\n");
 		printf("Vendor:   %s\n", glGetString(GL_VENDOR));
 		printf("Renderer: %s\n", glGetString(GL_RENDERER));
-		printf("Version:  %s\n\n", glGetString(GL_VERSION));
+		printf("Version:  %s\n", glGetString(GL_VERSION));
+		printf("--------------------------------------------------\n");
 	}
-	else {
+	else
+	{
 		printf("ERROR: Failed to initialize OpenGL context.\n");
 		return NULL;
 	}
@@ -57,7 +61,8 @@ float* util::loadModel(string filename, int& num_verts)
 		modelFile >> m_array[i];
 	}
 
-	cout << "\nLoaded model file " << filename << " successfully." << endl;
+	cout << "--------------------------------------------------" << endl;
+	cout << "Loaded model file " << filename << " successfully." << endl;
 
 	printf("Lines : %d\n", numLines);
 	num_verts = numLines / 8;

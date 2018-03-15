@@ -2,6 +2,9 @@
 
 using namespace std;
 
+//HELPER FUNCTION DECLARATIONS
+static bool TinyOBJLoad(const char* filename, const char* basepath, tinyobj::attrib_t &attrib,
+												vector<tinyobj::shape_t> &shapes, vector<tinyobj::material_t> &materials);
 
 /*----------------------------*/
 // CONSTRUCTORS AND DESTRUCTORS
@@ -57,15 +60,17 @@ bool World::loadModelData()
 	//LOAD IN MODELS
 	/////////////////////////////////
 	//CUBE
+	CUBE_START = 0;
 	CUBE_VERTS = 0;
 	float* cubeData = util::loadModel("models/cube.txt", CUBE_VERTS);
-	cout << "Number of vertices in cube model : " << CUBE_VERTS << endl;
+	cout << "\nNumber of vertices in cube model : " << CUBE_VERTS << endl;
 	total_model_verts += CUBE_VERTS;
 
 	//SPHERE
 	SPHERE_START = CUBE_VERTS;
+	SPHERE_VERTS = 0;
 	float* sphereData = util::loadModel("models/sphere.txt", SPHERE_VERTS);
-	cout << "Number of vertices in sphere model : " << SPHERE_VERTS << endl << endl;
+	cout << "\nNumber of vertices in sphere model : " << SPHERE_VERTS << endl;
 	total_model_verts += SPHERE_VERTS;
 
 	/////////////////////////////////
@@ -80,13 +85,25 @@ bool World::loadModelData()
 	}
 
 	modelData = new float[total_model_verts * 8];
-	cout << "Allocated modelData : " << total_model_verts * 8 << endl << endl;
+	cout << "\nAllocated modelData : " << total_model_verts * 8 << endl << endl;
 
 	copy(cubeData, cubeData + CUBE_VERTS * 8, modelData);
 	copy(sphereData, sphereData + SPHERE_VERTS * 8, modelData + (CUBE_VERTS * 8));
 
 	delete[] cubeData;
 	delete[] sphereData;
+
+	/////////////////////////////////
+	//LOAD IN OBJ
+	/////////////////////////////////
+	if (!TinyOBJLoad("models/cylinder.obj", "models/", obj_attrib, obj_shapes, obj_materials))
+	{
+		return false;
+	}
+
+	total_obj_triangles = (int)obj_attrib.vertices.size() / 3;
+	cout << "\nOBJ loaded successfully" << endl;
+	cout << "--------------------------------------------------" << endl;
 	return true;
 }
 
@@ -164,6 +181,71 @@ bool World::setupGraphics()
 
 	glBindVertexArray(0); //Unbind the VAO in case we want to create a new one
 
+	/////////////////////////////////
+	//BUILD OBJ VAO
+	/////////////////////////////////
+	glGenVertexArrays(1, &obj_vao);
+	glBindVertexArray(obj_vao);
+
+	/////////////////////////////////
+	//BUILD OBJ VBOs + IBO
+	/////////////////////////////////
+	glGenBuffers(3, obj_vbos);
+
+	//1.1 POSITIONS --> obj_vbos[0]
+	glBindBuffer(GL_ARRAY_BUFFER, obj_vbos[0]);
+	glBufferData(GL_ARRAY_BUFFER, obj_attrib.vertices.size() * sizeof(float), &obj_attrib.vertices.at(0), GL_STATIC_DRAW);
+
+	//1.2 setup position attributes --> need to set now while obj_vbos[0] is bound
+	GLint obj_posAttrib = glGetAttribLocation(phongProgram, "position");
+	glVertexAttribPointer(obj_posAttrib, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(obj_posAttrib);
+
+	//2.1 NORMALS --> obj_vbos[1]
+	if (obj_attrib.normals.size() == 0)
+	{
+		//fill with (0,0,0) normal vectors
+		for (int i = 0; i < total_obj_triangles*3; i++)	//same number of normals as vertices
+		{
+			obj_attrib.normals.push_back(0);
+			obj_attrib.normals.push_back(0);
+			obj_attrib.normals.push_back(0);
+		}
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, obj_vbos[1]);
+	glBufferData(GL_ARRAY_BUFFER, obj_attrib.normals.size() * sizeof(float), &obj_attrib.normals.at(0), GL_STATIC_DRAW);
+
+	//2.2 setup normal attributes
+	GLint obj_normAttrib = glGetAttribLocation(phongProgram, "inNormal");
+	glVertexAttribPointer(obj_normAttrib, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(obj_normAttrib);
+
+	//3.1 TEXCOORDS --> obj_vbos[2]
+	if (obj_attrib.texcoords.size() == 0)
+	{
+		//fill with (-1, -1) text coords --> no texture
+		for (int i = 0; i < total_obj_triangles*3; i++)	//same number of texcoords as vertices
+		{
+			obj_attrib.texcoords.push_back(-1);
+			obj_attrib.texcoords.push_back(-1);
+		}
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, obj_vbos[2]);
+	glBufferData(GL_ARRAY_BUFFER, obj_attrib.texcoords.size() * sizeof(float), &obj_attrib.texcoords.at(0), GL_STATIC_DRAW);
+
+	//3.2 setup texcoord attributes
+	GLint obj_texAttrib = glGetAttribLocation(phongProgram, "inTexcoord");
+	glVertexAttribPointer(obj_texAttrib, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(obj_texAttrib);
+
+	//4. INDICES --> obj_ibo
+	glGenBuffers(1, obj_ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj_ibo[0]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj_shapes.at(0).mesh.indices.size() * sizeof(int), &obj_shapes.at(0).mesh.indices, GL_STATIC_DRAW);
+
+	glBindVertexArray(0);
 	glEnable(GL_DEPTH_TEST);
 	return true;
 }
@@ -260,3 +342,44 @@ void World::init()
 /*----------------------------*/
 // PRIVATE FUNCTIONS
 /*----------------------------*/
+
+/*----------------------------*/
+// HELPER FUNCTIONS
+/*----------------------------*/
+static bool TinyOBJLoad(const char* filename, const char* basepath, tinyobj::attrib_t &attrib,
+												vector<tinyobj::shape_t> &shapes, vector<tinyobj::material_t> &materials)
+{
+	cout << "--------------------------------------------------" << endl;
+  cout << "Loading " << filename << "......"<< endl;
+
+  timerutil t;
+  t.start();
+  std::string err;
+  bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filename,
+                              basepath, true);
+  t.end();
+  printf("Parsing time: %lu [msecs]\n", t.msec());
+
+  if (!err.empty()) {
+    cerr << err << endl;
+  }
+
+  if (!ret) {
+    printf("Failed to load/parse .obj.\n");
+    return false;
+  }
+
+	printf("# of vertices  = %d\n", (int)(attrib.vertices.size()) / 3);
+  printf("# of normals   = %d\n", (int)(attrib.normals.size()) / 3);
+  printf("# of texcoords = %d\n", (int)(attrib.texcoords.size()) / 2);
+  printf("# of materials = %d\n", (int)materials.size());
+  printf("# of shapes    = %d\n", (int)shapes.size());
+
+	for (int s = 0; s < shapes.size(); s++)
+	{
+		printf("-->shapes[%i] : %s\n", s, shapes.at(s).name.c_str());
+		printf("----> # of indices = %d\n", (int)shapes.at(s).mesh.indices.size());
+	}
+
+  return true;
+}

@@ -32,6 +32,9 @@
 #include "WorldObject.h"
 #include "PRM.h"
 
+#include "timerutil.h"
+#include "tiny_obj_loader.h"
+
 class World{
 private:
 	int width;
@@ -49,11 +52,20 @@ private:
 	int total_lines = 0;
 	float* lineData;
 
+	//OBJ data
+	int total_obj_triangles = 0;
+	tinyobj::attrib_t obj_attrib;
+	vector<tinyobj::shape_t> obj_shapes;
+	vector<tinyobj::material_t> obj_materials;
+
 	//VAO and VBO GLuints
 	GLuint model_vao;
 	GLuint model_vbo[1];
 	GLuint line_vao;
 	GLuint line_vbo[1];
+	GLuint obj_vao;
+	GLuint obj_vbos[3];		//vertices, normals, texcoords
+	GLuint obj_ibo[1];
 
 	//Shader and Texture GLuints
 	GLuint phongProgram;
