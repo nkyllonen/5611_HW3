@@ -23,7 +23,7 @@ World::World(int w, int h)
 	width = w;
 	height = h;
 
-	myPRM = new PRM(w, h, (int)(w*h)/4);
+	myPRM = new PRM(w, h, (int)(w*h));
 	myCSpace = new CSpace();
 }
 

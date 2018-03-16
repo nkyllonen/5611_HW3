@@ -44,22 +44,32 @@ bool CSpace::isValidPosition(Vec3D p, float agent_radius)
     dist_v = obstacles[i]->getPos() - p;
     dist_sq = dotProduct(dist_v, dist_v);
 
-    if (dist_sq < radius_sq) return false;
+    if (dist_sq <= radius_sq) return false;
   }
 
   return true;
 }
 
 //determine is vector connecting 2 nodes intersects with any obstacles
-bool CSpace::isValidSegment(Vec3D AtoB, float agent_radius)
+bool CSpace::isValidSegment(Vec3D AtoB, Vec3D ptA, float agent_radius)
 {
-  Vec3D AtoC, ptD;
+  Vec3D AtoC;
+  float projAC = 1, CtoD_len_sq = 1, radius_sq = 0;
 
   //check segment against each obstacle
   for (int i = 0; i < obstacles.size(); i++)
   {
-    
+    AtoC = obstacles[i]->getPos() - ptA;
+    projAC = dotProduct(AtoC, AtoB);
+
+    //some pythag --> triangle ACD
+    CtoD_len_sq = dotProduct(AtoC, AtoC) - pow(projAC, 2);
+    radius_sq = pow(obstacles[i]->getSize().getX(), 2) + pow(agent_radius, 2); //extend by extent of agent
+
+    if (CtoD_len_sq <= radius_sq) return false;
   }
+
+  return true;
 }
 
 void CSpace::draw(GLuint shaderProgram)

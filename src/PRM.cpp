@@ -122,13 +122,13 @@ int PRM::connectNodes(CSpace* cs)
     {
       if (k != i) //don't check against itself
       {
-        dist = node_arr[i]->pos - node_arr[k]->pos;
+        dist = node_arr[i]->pos - node_arr[k]->pos; //dist: k --> i
         len_sq = dotProduct(dist, dist);
 
-        if (len_sq <= connection_radius_sq)
+        if (len_sq <= connection_radius_sq) //close enough to connect
         {
-          //1. figure out if path connecting nodes is valid in CSpace
-          if (cs->isValidSegment(dist, node_size/2.0))
+          //figure out if path connecting nodes is valid in CSpace
+          if (cs->isValidSegment(dist, node_arr[k]->pos, node_size/2.0))
           {
             node_arr[i]->neighbor_nodes.push_back(node_arr[k]);
             num_connections++;
