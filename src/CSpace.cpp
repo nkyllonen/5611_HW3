@@ -50,6 +50,18 @@ bool CSpace::isValidPosition(Vec3D p, float agent_radius)
   return true;
 }
 
+//determine is vector connecting 2 nodes intersects with any obstacles
+bool CSpace::isValidSegment(Vec3D AtoB, float agent_radius)
+{
+  Vec3D AtoC, ptD;
+
+  //check segment against each obstacle
+  for (int i = 0; i < obstacles.size(); i++)
+  {
+    
+  }
+}
+
 void CSpace::draw(GLuint shaderProgram)
 {
   for (int i = 0; i < obstacles.size(); i++)

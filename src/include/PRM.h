@@ -5,6 +5,7 @@
 #include "Material.h"
 #include "Vec3D.h"
 #include "Util.h"
+#include "CSpace.h"
 
 class PRM
 {
@@ -33,8 +34,8 @@ class PRM
     int getNumNodes();
 
     //OTHERS
-    int generateNodes(int model_start, int model_verts);    //later pass in ptr to CSpace obj?
-    int connectNodes();                                     //later pass in ptr to CSpace obj?
+    int generateNodes(int model_start, int model_verts, CSpace* cs);
+    int connectNodes(CSpace* cs);
     void drawNodes(GLuint nodeShader);
     void drawConnections(GLuint shaderProgram);
     void loadLineVertices(float* lineData);

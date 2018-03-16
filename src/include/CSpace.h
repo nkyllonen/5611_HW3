@@ -22,6 +22,7 @@ class CSpace
     //OTHERS
     void addObstacle(WorldObject* o);
     bool isValidPosition(Vec3D p, float agent_radius);
+    bool isValidSegment(Vec3D AtoB, float agent_radius);
     void draw(GLuint shaderProgram);
 
 };

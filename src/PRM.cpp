@@ -48,7 +48,7 @@ int PRM::getNumNodes()
 /*----------------------------*/
 // OTHERS
 /*----------------------------*/
-int PRM::generateNodes(int model_start, int model_verts)
+int PRM::generateNodes(int model_start, int model_verts, CSpace* cs)
 {
   Vec3D size = Vec3D(node_size, node_size, node_size);
 	Vec3D pos = Vec3D();
@@ -65,7 +65,7 @@ int PRM::generateNodes(int model_start, int model_verts)
 	//place start and goal across from each other
 	pos = Vec3D(-width/2 + (double)rand()/RAND_MAX + node_size, -height/2 + (double)rand()/RAND_MAX + node_size, z);
 	temp = new Node(pos);
-	temp->size = size;
+	temp->size = 2*size;
 	temp->setVertexInfo(model_start, model_verts);
 
   mat.setAmbient(util::vec3DtoGLM(start_color));
@@ -75,7 +75,7 @@ int PRM::generateNodes(int model_start, int model_verts)
 
 	pos = Vec3D(width/2 - (double)rand()/RAND_MAX - node_size, height/2 - (double)rand()/RAND_MAX - node_size, z);
 	temp = new Node(pos);
-  temp->size = size;
+  temp->size = 2*size;
 	temp->setVertexInfo(model_start, model_verts);
 
   mat.setAmbient(util::vec3DtoGLM(goal_color));
@@ -89,10 +89,14 @@ int PRM::generateNodes(int model_start, int model_verts)
 
 	for (int i = 1; i < num_nodes-1; i++)
 	{
-    //subtract node_size so that they won't go over the edge of the area
-		x = ((double)rand()/RAND_MAX)*(width - node_size) - (width/2.0);
-		y = ((double)rand()/RAND_MAX)*(height - node_size) - (height/2.0);
-		pos = Vec3D(x,y,z);
+    //loop while checking if generated position is not valid
+    do
+    {
+      //subtract node_size so that they won't go over the edge of the area
+      x = ((double)rand()/RAND_MAX)*(width - node_size) - (width/2.0);
+      y = ((double)rand()/RAND_MAX)*(height - node_size) - (height/2.0);
+      pos = Vec3D(x,y,z);
+    } while(!cs->isValidPosition(pos, node_size/2.0));
 
 		temp = new Node(pos);
 
@@ -106,7 +110,7 @@ int PRM::generateNodes(int model_start, int model_verts)
   return num_nodes;
 }
 
-int PRM::connectNodes()
+int PRM::connectNodes(CSpace* cs)
 {
   Vec3D dist;
   float len_sq = 0;
@@ -123,11 +127,12 @@ int PRM::connectNodes()
 
         if (len_sq <= connection_radius_sq)
         {
-          //TODO: figure out if path connecting nodes is valid in CSpace
-          //printf("--connecting node[%i] with node[%i]--\n", i, k);
-          node_arr[i]->neighbor_nodes.push_back(node_arr[k]);
-          num_connections++;
-          //printf("--->num_connections = %i\n", num_connections);
+          //1. figure out if path connecting nodes is valid in CSpace
+          if (cs->isValidSegment(dist, node_size/2.0))
+          {
+            node_arr[i]->neighbor_nodes.push_back(node_arr[k]);
+            num_connections++;
+          }
         }
       }
     }//END for-k

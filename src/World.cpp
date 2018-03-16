@@ -23,7 +23,7 @@ World::World(int w, int h)
 	width = w;
 	height = h;
 
-	myPRM = new PRM(w, h, w*2);
+	myPRM = new PRM(w, h, (int)(w*h)/4);
 	myCSpace = new CSpace();
 }
 
@@ -301,8 +301,8 @@ void World::draw(Camera * cam)
 	myPRM->drawNodes(phongProgram);
 
 	//draw objs in CSpace
-	glBindVertexArray(obj_vao);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj_ibo[0]);
+	//glBindVertexArray(obj_vao);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj_ibo[0]);
 	glUniform1i(uniTexID, -1);
 
 	myCSpace->draw(phongProgram);
@@ -341,25 +341,30 @@ void World::init()
 
 	floor->setMaterial(mat);
 
-	//2. initialize all nodes with random positions along floor
-	num_nodes = myPRM->generateNodes(CUBE_START, CUBE_VERTS);
+	//2. add obstacle(s) to CSpace
+	WorldObject* obj = new WorldObject(Vec3D(0,0,0));
+	//obj->setVertexInfo(0, total_obj_triangles);
+	obj->setVertexInfo(SPHERE_START, SPHERE_VERTS);
+
+	mat.setAmbient(glm::vec3(0.7, 0.7, 0));
+	mat.setDiffuse(glm::vec3(0.7, 0.7, 0));
+
+	obj->setMaterial(mat);
+	obj->setSize(Vec3D(1,1,1));
+	//obj->hasIBO = true;
+
+	myCSpace->addObstacle(obj);
+
+	//3. initialize all nodes with random positions along floor
+	num_nodes = myPRM->generateNodes(CUBE_START, CUBE_VERTS, myCSpace);
 	cout << "Generated " << num_nodes << " nodes" << endl;
-	total_lines = myPRM->connectNodes();
+	total_lines = myPRM->connectNodes(myCSpace);
 	cout << "Generated " << total_lines << " connections between nodes" << endl;
 
 	lineData = new float[total_lines * 6]; //3 coords per endpts of each spring (3 x 2)
 	cout << "\nAllocated lineData : " << total_lines * 6 << endl;
 
 	myPRM->loadLineVertices(lineData);
-
-	//3. add center cylinder to CSpace
-	WorldObject* obj = new WorldObject(Vec3D(0,0,0));
-	obj->setVertexInfo(0, total_obj_triangles);
-	obj->setMaterial(mat);
-	obj->setSize(Vec3D(1,1,1));
-	obj->hasIBO = true;
-
-	myCSpace->addObstacle(obj);
 }
 
 /*----------------------------*/
