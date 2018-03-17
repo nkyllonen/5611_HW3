@@ -87,13 +87,18 @@ Vec3D operator*(const Vec3D & a, const Vec3D & b)
 	result.x = a.x * b.x;
 	result.y = a.y * b.y;
 	result.z = a.z * b.z;
-	
+
 	return result;
 }
 
 float dotProduct(const Vec3D & a, const Vec3D & b)
 {
 	return a.x*b.x + a.y*b.y + a.z*b.z;
+}
+
+bool operator== (const Vec3D a, const Vec3D b)
+{
+	return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
 }
 
 /*----------------------------*/

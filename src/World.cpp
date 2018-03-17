@@ -23,7 +23,7 @@ World::World(int w, int h)
 	width = w;
 	height = h;
 
-	myPRM = new PRM(w, h, (int)(w*h));
+	myPRM = new PRM(w, h, (int)(w*h)/2);
 	myCSpace = new CSpace();
 }
 
@@ -350,7 +350,7 @@ void World::init()
 	mat.setDiffuse(glm::vec3(0.7, 0.7, 0));
 
 	obj->setMaterial(mat);
-	obj->setSize(Vec3D(1,1,1));
+	obj->setSize(Vec3D(2,2,2));
 	//obj->hasIBO = true;
 
 	myCSpace->addObstacle(obj);

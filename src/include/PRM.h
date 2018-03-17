@@ -19,8 +19,12 @@ class PRM
     float node_size = 0.25;
     int num_connections = 0;
 
+    //PRIVATE FUNCTIONS
+    link_t getShortest(link_t cur_link);
+
   public:
     //PUBLIC VARIABLES
+    vector<link_t> path;
 
     //CONSTRUCTORS AND DESTRUCTORS
     PRM();
@@ -39,6 +43,7 @@ class PRM
     void drawNodes(GLuint nodeShader);
     void drawConnections(GLuint shaderProgram);
     void loadLineVertices(float* lineData);
+    bool generatePath();
 
 };
 

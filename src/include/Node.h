@@ -5,6 +5,9 @@
 #include "Material.h"
 #include "Util.h"
 
+//forward declaration of struct
+struct link_t;
+
 class Node
 {
 private:
@@ -16,7 +19,7 @@ public:
   Vec3D pos;
   Vec3D size;
   Material mat;
-  std::vector<Node*> neighbor_nodes;
+  std::vector<link_t> neighbor_nodes;
 
   //CONSTRUCTORS + DESTRUCTORS
   Node();
@@ -29,6 +32,19 @@ public:
   //OTHERS
   void draw(GLuint shaderProgram);
 
+  //OVERLOADED OPERATORS
+  friend bool operator== (Node n1, Node n2);
+
+};
+
+struct link_t
+{
+  //constructors
+  link_t() : length_sq(-1), node(nullptr) {};
+  link_t(float len, Node* n) : length_sq(len), node(n) {};
+
+  float length_sq = -1;
+  Node* node = nullptr;
 };
 
 #endif

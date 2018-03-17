@@ -67,3 +67,11 @@ void Node::draw(GLuint shaderProgram)
 	//(Primitive Type, Start Vertex, End Vertex)
 	glDrawArrays(GL_TRIANGLES, start_vertex_index, total_vertices);
 }
+
+/*----------------------------*/
+// OVERLOADED OPERATORS
+/*----------------------------*/
+bool operator==(Node n1, Node n2)
+{
+  return ((n1.pos == n2.pos) && (n1.neighbor_nodes.size() == n2.neighbor_nodes.size()));
+}

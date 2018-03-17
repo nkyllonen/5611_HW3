@@ -130,7 +130,8 @@ int PRM::connectNodes(CSpace* cs)
           //figure out if path connecting nodes is valid in CSpace
           if (cs->isValidSegment(dist, node_arr[k]->pos, node_size/2.0))
           {
-            node_arr[i]->neighbor_nodes.push_back(node_arr[k]);
+            link_t l = link_t(len_sq, node_arr[k]); //create new link_t holding length sq'd and Node*
+            node_arr[i]->neighbor_nodes.push_back(l);
             num_connections++;
           }
         }
@@ -170,7 +171,7 @@ void PRM::loadLineVertices(float* lineData)
 	int count = 0, i_connections = 0;
 	Vec3D pi;
 	Vec3D pii;
-	vector<Node*> neighbors;
+	vector<link_t> neighbors;
 
 	for (int i = 0; i < num_nodes; i++)
 	{
@@ -181,7 +182,7 @@ void PRM::loadLineVertices(float* lineData)
 
 		for (int c = 0; c < i_connections; c++)
 		{
-			pii = neighbors[c]->pos;
+			pii = neighbors[c].node->pos;
 
 			util::loadVecValues(lineData, pi, count);
 			util::loadVecValues(lineData, pii, count);
@@ -190,3 +191,47 @@ void PRM::loadLineVertices(float* lineData)
 
   cout << "LineData values loaded" << endl;
 }//END loadLineVertices
+
+/*----------------------------*/
+// PRIVATE FUNCTIONS
+/*----------------------------*/
+link_t PRM::getShortest(link_t cur_link)
+{
+  Node* cur_node = cur_link.node;
+  int num = cur_node->neighbor_nodes.size();
+  int min_i = 0, min_len = width*width;
+
+  //base case 1 : we're at the goal
+  if (*cur_node == *node_arr[num_nodes-1]) return cur_link;
+
+  //base case 2 : we only have one neighbor (i.e. the one we came from)
+  if (num == 1) return link_t();
+
+  //loop over neighbors and find shortest
+  for (int i = 0; i < num; i++)
+  {
+    if (cur_node->neighbor_nodes[i].length_sq < min_len)
+    {
+      min_i = i;
+      min_len = cur_node->neighbor_nodes[i].length_sq;
+    }
+  }
+
+  //construct shortest link_t
+  link_t min_link = link_t(min_len, node_arr[min_i]);
+  link_t shortest = getShortest(min_link);
+  if (shortest.node == nullptr)
+  {
+    //try again with a random connection
+    int rand_i = -1;
+    while (rand_i == min_i)
+    {
+      rand_i = rand()%num;
+    }
+
+    min_link = cur_node->neighbor_nodes[rand_i];
+    shortest = getShortest(min_link);
+  }
+
+  path.push_back(shortest);
+}
