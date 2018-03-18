@@ -20,6 +20,7 @@ public:
   Vec3D size;
   Material mat;
   std::vector<link_t> neighbor_nodes;
+  bool visited = false;
 
   //CONSTRUCTORS + DESTRUCTORS
   Node();

@@ -219,6 +219,7 @@ void PRM::printShortest()
 void PRM::UCS()
 {
   Node* cur_node;
+  Node* cur_neighbor;
   int pos = 0, num = 0;
   priority_queue <q_element, vector<q_element>, q_element_comparison> PQ;
 
@@ -229,6 +230,8 @@ void PRM::UCS()
   start_node->pos.print();
   cout << "goal node at : ";
   goal_node->pos.print();
+
+  start_node->visited = true;            //mark start has having been visited
 
   //1. add starting node to PQ
   q_element vstart;
@@ -250,7 +253,7 @@ void PRM::UCS()
     //check if we're at the goal
     if (cur_node == goal_node)
     {
-      cout << "\n++Goal reached!++" << endl;
+      cout << "\n+++++Goal reached!+++++" << endl;
 
       //need to add path to shortest_path
       list<Node*> cur_el_path = cur_el.path;
@@ -274,14 +277,21 @@ void PRM::UCS()
 
       for (int i = 0; i < num; i++)
       {
-        temp_el = cur_el;
+        cur_neighbor = cur_node->neighbor_nodes[i].node;
 
-        //extend the paths in the PQ to include cur_node's neighbors
-        temp_el.path.push_back(cur_node->neighbor_nodes[i].node);
-        temp_el.cost += cur_node->neighbor_nodes[i].length_sq;
+        //check if we've visit this node before
+        if (!cur_neighbor->visited)
+        {
+          cur_neighbor->visited = true;
+          temp_el = cur_el;
 
-        //push extended element onto PQ
-        PQ.push(temp_el);
+          //extend the paths in the PQ to include cur_node's neighbors
+          temp_el.path.push_back(cur_neighbor);
+          temp_el.cost += cur_node->neighbor_nodes[i].length_sq;
+
+          //push extended element onto PQ
+          PQ.push(temp_el);
+        }
       }
     }
   }//END while !empty
