@@ -7,6 +7,9 @@
 #include "Util.h"
 #include "CSpace.h"
 
+#include <list>
+#include <queue>
+
 class PRM
 {
   private:
@@ -20,11 +23,11 @@ class PRM
     int num_connections = 0;
 
     //PRIVATE FUNCTIONS
-    link_t getShortest(link_t cur_link);
+    void UCS();
 
   public:
     //PUBLIC VARIABLES
-    vector<link_t> path;
+    vector<Node*> shortest_path;
 
     //CONSTRUCTORS AND DESTRUCTORS
     PRM();
@@ -43,8 +46,29 @@ class PRM
     void drawNodes(GLuint nodeShader);
     void drawConnections(GLuint shaderProgram);
     void loadLineVertices(float* lineData);
-    bool generatePath();
+    void buildShortest();
+    void printShortest();
 
+};
+
+//other structures necessary for PRM's Uniform Cost Search
+struct q_element
+{
+  std::list<Node*> path;
+  float cost;
+  bool operator> (const q_element& rhs) const
+  {
+    return cost > rhs.cost;
+  }
+};
+
+class q_element_comparison
+{
+  public:
+    bool operator()(q_element e1, q_element e2) const
+    {
+      return e1 > e2;
+    }
 };
 
 #endif

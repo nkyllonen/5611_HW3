@@ -43,8 +43,8 @@ struct link_t
   link_t() : length_sq(-1), node(nullptr) {};
   link_t(float len, Node* n) : length_sq(len), node(n) {};
 
-  float length_sq = -1;
-  Node* node = nullptr;
+  float length_sq;
+  Node* node;
 };
 
 #endif

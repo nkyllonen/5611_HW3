@@ -205,6 +205,15 @@ int main(int argc, char *argv[]) {
 		SDL_GL_SwapWindow(window);
 		framecount++;
 
+		if (!myWorld->path_printed)
+		{
+			cout << "Calculating shortest_path...." << endl;
+			myWorld->myPRM->buildShortest();
+			myWorld->myPRM->printShortest();
+			cout << "--------------------------------------------------" << endl;
+			myWorld->path_printed = true;
+		}
+
 	}//END looping While
 
 	//Clean Up

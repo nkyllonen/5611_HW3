@@ -342,7 +342,7 @@ void World::init()
 	floor->setMaterial(mat);
 
 	//2. add obstacle(s) to CSpace
-	WorldObject* obj = new WorldObject(Vec3D(0,0,0));
+	/*WorldObject* obj = new WorldObject(Vec3D(0,0,0));
 	//obj->setVertexInfo(0, total_obj_triangles);
 	obj->setVertexInfo(SPHERE_START, SPHERE_VERTS);
 
@@ -350,11 +350,11 @@ void World::init()
 	mat.setDiffuse(glm::vec3(0.7, 0.7, 0));
 
 	obj->setMaterial(mat);
-	obj->setSize(Vec3D(2,2,2));
+	obj->setSize(Vec3D(1,1,1));
 	//obj->hasIBO = true;
 
 	myCSpace->addObstacle(obj);
-
+	*/
 	//3. initialize all nodes with random positions along floor
 	num_nodes = myPRM->generateNodes(CUBE_START, CUBE_VERTS, myCSpace);
 	cout << "Generated " << num_nodes << " nodes" << endl;

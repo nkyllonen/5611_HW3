@@ -1,5 +1,7 @@
 #include "PRM.h"
 
+using namespace std;
+
 /*----------------------------*/
 // CONSTRUCTORS AND DESTRUCTORS
 /*----------------------------*/
@@ -192,46 +194,97 @@ void PRM::loadLineVertices(float* lineData)
   cout << "LineData values loaded" << endl;
 }//END loadLineVertices
 
+void PRM::buildShortest()
+{
+  //leave room for other path finding algorithms?
+  UCS();
+}
+
+void PRM::printShortest()
+{
+  int num = shortest_path.size();
+
+  for (int i = 0; i < num; i++)
+  {
+    printf("path[%i] at ", i);
+    shortest_path[i]->pos.print();
+  }
+}
+
 /*----------------------------*/
 // PRIVATE FUNCTIONS
 /*----------------------------*/
-link_t PRM::getShortest(link_t cur_link)
+//this implementation is largely inspired/copied from:
+//  https://www.snip2code.com/Snippet/1017813/Uniform-Cost-Search-Algorithm-C---Implem
+void PRM::UCS()
 {
-  Node* cur_node = cur_link.node;
-  int num = cur_node->neighbor_nodes.size();
-  int min_i = 0, min_len = width*width;
+  Node* cur_node;
+  int pos = 0, num = 0;
+  priority_queue <q_element, vector<q_element>, q_element_comparison> PQ;
 
-  //base case 1 : we're at the goal
-  if (*cur_node == *node_arr[num_nodes-1]) return cur_link;
+  Node* start_node = node_arr[0];
+  Node* goal_node = node_arr[num_nodes-1];
 
-  //base case 2 : we only have one neighbor (i.e. the one we came from)
-  if (num == 1) return link_t();
+  cout << "start node at : ";
+  start_node->pos.print();
+  cout << "goal node at : ";
+  goal_node->pos.print();
 
-  //loop over neighbors and find shortest
-  for (int i = 0; i < num; i++)
+  //1. add starting node to PQ
+  q_element vstart;
+  vstart.path.push_back(start_node);
+  vstart.cost = 0;
+  PQ.push(vstart);
+
+  //2. loop until we finish
+  while (!PQ.empty())
   {
-    if (cur_node->neighbor_nodes[i].length_sq < min_len)
+    q_element cur_el, temp_el;
+    cur_el = PQ.top();                  //hold onto maximum priority element
+    cur_node = cur_el.path.back();      //access last element in cur_el's list of Nodes
+
+    //cout << "current: " << current << " --> cost: " << cur_el.cost << endl;
+
+    PQ.pop();                           //"dequeue the maximum priority element from the queue"
+
+    //check if we're at the goal
+    if (cur_node == goal_node)
     {
-      min_i = i;
-      min_len = cur_node->neighbor_nodes[i].length_sq;
-    }
-  }
+      cout << "\n++Goal reached!++" << endl;
 
-  //construct shortest link_t
-  link_t min_link = link_t(min_len, node_arr[min_i]);
-  link_t shortest = getShortest(min_link);
-  if (shortest.node == nullptr)
-  {
-    //try again with a random connection
-    int rand_i = -1;
-    while (rand_i == min_i)
+      //need to add path to shortest_path
+      list<Node*> cur_el_path = cur_el.path;
+      num = cur_el_path.size();
+      Node* temp_node;
+
+      for (int i = 0; i < num; i++)
+      {
+        temp_node = cur_el_path.front();   //grab very first element
+        shortest_path.push_back(temp_node);
+        cur_el_path.pop_front();           //remove first element from list
+      }
+
+      return;
+    }
+    else
     {
-      rand_i = rand()%num;
+      //loop through neighbors of cur_el
+      //--> "insert all the children of the dequeued element, with the cumulative costs as priority"
+      num = cur_node->neighbor_nodes.size();
+
+      for (int i = 0; i < num; i++)
+      {
+        temp_el = cur_el;
+
+        //extend the paths in the PQ to include cur_node's neighbors
+        temp_el.path.push_back(cur_node->neighbor_nodes[i].node);
+        temp_el.cost += cur_node->neighbor_nodes[i].length_sq;
+
+        //push extended element onto PQ
+        PQ.push(temp_el);
+      }
     }
+  }//END while !empty
 
-    min_link = cur_node->neighbor_nodes[rand_i];
-    shortest = getShortest(min_link);
-  }
-
-  path.push_back(shortest);
+  cout << "++PQ determined to be empty++" << endl;
 }

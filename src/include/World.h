@@ -77,10 +77,13 @@ private:
 	//Objects in the World
 	WorldObject* floor;
 	int num_nodes = 0;
-	PRM* myPRM;
 	CSpace* myCSpace;
 
 public:
+	//PUBLIC VARIABLES
+	PRM* myPRM;
+	bool path_printed = false;
+
 	//CONSTRUCTORS AND DESTRUCTORS
 	World();
 	World(int w, int h);
