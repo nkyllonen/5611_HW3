@@ -14,10 +14,10 @@ PRM::PRM(int w, int h, int num)
 {
   width = w;
   height = h;
-  num_nodes = num;
+  num_nodes = num + 2;                //+2 for strart and goal
   node_arr = new Node*[num_nodes];
   cout << "Allocated node_arr to length " << num_nodes << endl;
-  connection_radius_sq = w*w; //so we get everything connecting to each other
+  connection_radius_sq = w; //so we get everything connecting to each other
 }
 
 PRM::~PRM()
@@ -137,10 +137,6 @@ int PRM::connectNodes(CSpace* cs)
             num_connections++;
           }
         }
-        else
-        {
-          cout << "...possible connection too long..." << endl;
-        }
       }//END if k != i
     }//END for-k
   }//END for-i
@@ -150,9 +146,21 @@ int PRM::connectNodes(CSpace* cs)
 
 void PRM::drawNodes(GLuint nodeShader)
 {
-  for (int i = 0; i < num_nodes; i++)
+  if (draw_state == DRAW_ALL)
   {
-    node_arr[i]->draw(nodeShader);
+    for (int i = 0; i < num_nodes; i++)
+    {
+      node_arr[i]->draw(nodeShader);
+    }
+  }
+  else if (draw_state == DRAW_PATH)
+  {
+    int num = shortest_path.size();
+
+    for (int i = 0; i < num; i++)
+    {
+      shortest_path[i]->draw(nodeShader);
+    }
   }
 }
 
@@ -165,7 +173,8 @@ void PRM::drawConnections(GLuint shaderProgram)
   glUniform3f(uniform_color, color[0], color[1], color[2]);
 
   glLineWidth(2);
-	glDrawArrays(GL_LINES, 0, num_connections * 2);
+	if (draw_state == DRAW_ALL) glDrawArrays(GL_LINES, 0, num_connections * 2); //*2 since 2 vertices per connection?
+  else if (draw_state == DRAW_PATH) glDrawArrays(GL_LINES, 0, shortest_path.size() * 2);
 }
 
 /*--------------------------------------------------------------*/
@@ -177,25 +186,42 @@ void PRM::loadLineVertices(float* lineData)
 	int count = 0, i_connections = 0;
 	Vec3D pi;
 	Vec3D pii;
-	vector<link_t> neighbors;
 
-	for (int i = 0; i < num_nodes; i++)
-	{
-		//go through each node's list of connections
-		neighbors = node_arr[i]->neighbor_nodes;
-		i_connections = neighbors.size();
-		pi = node_arr[i]->pos;
+  if (draw_state == DRAW_ALL)
+  {
+    vector<link_t> neighbors;
 
-		for (int c = 0; c < i_connections; c++)
-		{
-			pii = neighbors[c].node->pos;
+  	for (int i = 0; i < num_nodes; i++)
+  	{
+  		//go through each node's list of connections
+  		neighbors = node_arr[i]->neighbor_nodes;
+  		i_connections = neighbors.size();
+  		pi = node_arr[i]->pos;
 
-			util::loadVecValues(lineData, pi, count);
-			util::loadVecValues(lineData, pii, count);
-		}
-	}
+  		for (int c = 0; c < i_connections; c++)
+  		{
+  			pii = neighbors[c].node->pos;
 
-  cout << "LineData values loaded" << endl;
+  			util::loadVecValues(lineData, pi, count);
+  			util::loadVecValues(lineData, pii, count);
+  		}
+  	}
+  }
+  else if (draw_state == DRAW_PATH)
+  {
+    int num = shortest_path.size();
+
+  	for (int i = 0; i < num-1; i++)
+  	{
+  		pi = shortest_path[i]->pos;
+      pii = shortest_path[i+1]->pos;
+
+      util::loadVecValues(lineData, pi, count);
+      util::loadVecValues(lineData, pii, count);
+  	}
+  }
+
+  cout << "LineData values loaded\n" << endl;
 }//END loadLineVertices
 
 void PRM::buildShortest()
@@ -213,6 +239,27 @@ void PRM::printShortest()
     printf("path[%i] at ", i);
     shortest_path[i]->pos.print();
   }
+}
+
+int PRM::changeDrawState()
+{
+  int num_lines = 0;
+
+  if (draw_state == DRAW_ALL)
+  {
+    cout << "\n--->Drawing path only" << endl;
+    draw_state = DRAW_PATH;
+    num_lines = shortest_path.size();
+  }
+  else if (draw_state == DRAW_PATH)
+  {
+    cout << "\n--->Drawing all connections" << endl;
+    draw_state = DRAW_ALL;
+    num_lines = num_connections;
+
+  }
+
+  return num_lines;
 }
 
 /*----------------------------*/

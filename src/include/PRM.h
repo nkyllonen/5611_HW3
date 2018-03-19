@@ -10,6 +10,12 @@
 #include <list>
 #include <queue>
 
+enum state
+{
+  DRAW_ALL,
+  DRAW_PATH
+};
+
 class PRM
 {
   private:
@@ -21,6 +27,8 @@ class PRM
   	Node** node_arr;
     float node_size = 0.25;
     int num_connections = 0;
+
+    state draw_state = DRAW_ALL;
 
     //PRIVATE FUNCTIONS
     void UCS();
@@ -48,6 +56,7 @@ class PRM
     void loadLineVertices(float* lineData);
     void buildShortest();
     void printShortest();
+    int changeDrawState();
 
 };
 

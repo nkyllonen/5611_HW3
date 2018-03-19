@@ -100,6 +100,7 @@ public:
 	bool setupGraphics();
 	void draw(Camera * cam);
 	void init();
+	void changePRMState();
 
 };
 

@@ -23,14 +23,14 @@ World::World(int w, int h)
 	width = w;
 	height = h;
 
-	myPRM = new PRM(w, h, w);
+	myPRM = new PRM(w, h, (w*h)/4);
 	myCSpace = new CSpace();
 }
 
 World::~World()
 {
 	delete[] modelData;
-	//delete[] lineData;
+	delete[] lineData;
 	delete floor;
 	delete myPRM;
 	delete myCSpace;
@@ -163,7 +163,7 @@ bool World::setupGraphics()
 	glBindVertexArray(line_vao); //Bind the line_vao to the current context
 	glGenBuffers(1, line_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, line_vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, total_lines * 6 * sizeof(float), lineData, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, total_lines * 6 * sizeof(float), lineData, GL_DYNAMIC_DRAW);
 
 	/////////////////////////////////
 	//SETUP LINE SHADERS
@@ -365,6 +365,27 @@ void World::init()
 	cout << "\nAllocated lineData : " << total_lines * 6 << endl;
 
 	myPRM->loadLineVertices(lineData);
+}
+
+void World::changePRMState()
+{
+	//update the total number of lines we want to draw
+	total_lines = myPRM->changeDrawState();
+
+	//clean up current lineData array
+	delete [] lineData;
+	lineData = new float[total_lines * 6]; //3 coords per endpts of each spring (3 x 2)
+	cout << "\nReallocated lineData : " << total_lines * 6 << endl;
+
+	//reload values into lineData
+	myPRM->loadLineVertices(lineData);
+
+	/////////////////////////////////
+	//UPDATE LINE VAO + VBO
+	/////////////////////////////////
+	glBindVertexArray(line_vao); //Bind the line_vao to the current context
+	glBindBuffer(GL_ARRAY_BUFFER, line_vbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, total_lines * 6 * sizeof(float), lineData, GL_DYNAMIC_DRAW);
 }
 
 /*----------------------------*/

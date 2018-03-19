@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
 		{
 			cout << "Calculating shortest_path...." << endl;
 			myWorld->myPRM->buildShortest();
-			myWorld->myPRM->printShortest();
+			//myWorld->myPRM->printShortest();
 			cout << "--------------------------------------------------" << endl;
 			myWorld->path_printed = true;
 		}
@@ -261,6 +261,12 @@ void onKeyDown(SDL_KeyboardEvent & event, Camera* cam, World* myWorld)
 	case SDLK_a:
 		//printf("A key pressed - step to the left\n");
 		temp_pos = pos - (step_size*right);
+		break;
+	/////////////////////////////////
+	//CHANGE PATH DRAWING STATE WITH P
+	/////////////////////////////////
+	case SDLK_p:
+		myWorld->changePRMState();
 		break;
 	default:
 		printf("ERROR: Invalid key pressed (%s)\n", SDL_GetKeyName(event.keysym.sym));
