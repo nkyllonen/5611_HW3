@@ -17,7 +17,7 @@ PRM::PRM(int w, int h, int num)
   num_nodes = num;
   node_arr = new Node*[num_nodes];
   cout << "Allocated node_arr to length " << num_nodes << endl;
-  connection_radius_sq = w; //so we get everything connecting to each other
+  connection_radius_sq = w*w; //so we get everything connecting to each other
 }
 
 PRM::~PRM()
@@ -124,20 +124,24 @@ int PRM::connectNodes(CSpace* cs)
     {
       if (k != i) //don't check against itself
       {
-        dist = node_arr[i]->pos - node_arr[k]->pos; //dist: k --> i
+        dist = node_arr[k]->pos - node_arr[i]->pos; //dist: i --> k
         len_sq = dotProduct(dist, dist);
 
         if (len_sq <= connection_radius_sq) //close enough to connect
         {
           //figure out if path connecting nodes is valid in CSpace
-          if (cs->isValidSegment(dist, node_arr[k]->pos, node_size/2.0))
+          if (cs->isValidSegment(dist, node_arr[i]->pos, node_size/2.0))
           {
             link_t l = link_t(len_sq, node_arr[k]); //create new link_t holding length sq'd and Node*
             node_arr[i]->neighbor_nodes.push_back(l);
             num_connections++;
           }
         }
-      }
+        else
+        {
+          cout << "...possible connection too long..." << endl;
+        }
+      }//END if k != i
     }//END for-k
   }//END for-i
 
@@ -246,9 +250,9 @@ void PRM::UCS()
     cur_el = PQ.top();                  //hold onto maximum priority element
     cur_node = cur_el.path.back();      //access last element in cur_el's list of Nodes
 
-    //cout << "current: " << current << " --> cost: " << cur_el.cost << endl;
-
     PQ.pop();                           //"dequeue the maximum priority element from the queue"
+
+    cur_node->visited = true;
 
     //check if we're at the goal
     if (cur_node == goal_node)
@@ -275,6 +279,8 @@ void PRM::UCS()
       //--> "insert all the children of the dequeued element, with the cumulative costs as priority"
       num = cur_node->neighbor_nodes.size();
 
+      //cout << "current cost: " << cur_el.cost << " num neighbors: " << num << endl;
+
       for (int i = 0; i < num; i++)
       {
         cur_neighbor = cur_node->neighbor_nodes[i].node;
@@ -282,7 +288,7 @@ void PRM::UCS()
         //check if we've visit this node before
         if (!cur_neighbor->visited)
         {
-          cur_neighbor->visited = true;
+          //cur_neighbor->visited = true;
           temp_el = cur_el;
 
           //extend the paths in the PQ to include cur_node's neighbors
@@ -291,6 +297,10 @@ void PRM::UCS()
 
           //push extended element onto PQ
           PQ.push(temp_el);
+        }
+        else
+        {
+          //cout << "already visited this neighbor" << endl;
         }
       }
     }

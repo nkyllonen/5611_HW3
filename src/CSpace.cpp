@@ -40,7 +40,7 @@ bool CSpace::isValidPosition(Vec3D p, float agent_radius)
   //check against each obstacle
   for (int i = 0; i < obstacles.size(); i++)
   {
-    radius_sq = pow(obstacles[i]->getSize().getX()/2.0, 2) + agent_radius; //extend by extent of agent
+    radius_sq = pow(obstacles[i]->getSize().getX(), 2) + agent_radius; //extend by extent of agent
     dist_v = obstacles[i]->getPos() - p;
     dist_sq = dotProduct(dist_v, dist_v);
 
@@ -53,6 +53,9 @@ bool CSpace::isValidPosition(Vec3D p, float agent_radius)
 //determine is vector connecting 2 nodes intersects with any obstacles
 bool CSpace::isValidSegment(Vec3D AtoB, Vec3D ptA, float agent_radius)
 {
+  //immediately normalize AtoB so projection is correct
+  AtoB.normalize();
+
   Vec3D AtoC;
   float projAC = 1, CtoD_len_sq = 1, radius_sq = 0;
 
@@ -64,7 +67,7 @@ bool CSpace::isValidSegment(Vec3D AtoB, Vec3D ptA, float agent_radius)
 
     //some pythag --> triangle ACD
     CtoD_len_sq = dotProduct(AtoC, AtoC) - pow(projAC, 2);
-    radius_sq = pow(obstacles[i]->getSize().getX()/2.0, 2) + agent_radius; //extend by extent of agent
+    radius_sq = pow(obstacles[i]->getSize().getX()/4.0, 2) + agent_radius; //extend by extent of agent
 
     if (CtoD_len_sq <= radius_sq) return false;
   }
