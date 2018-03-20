@@ -35,7 +35,7 @@ class PRM
 
   public:
     //PUBLIC VARIABLES
-    float agent_size = 0.5;
+    float agent_size = 1.0;
     vector<Node*> shortest_path;
 
     //CONSTRUCTORS AND DESTRUCTORS
