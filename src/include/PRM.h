@@ -31,10 +31,11 @@ class PRM
     state draw_state = DRAW_ALL;
 
     //PRIVATE FUNCTIONS
-    void UCS();
+    bool UCS();
 
   public:
     //PUBLIC VARIABLES
+    float agent_size = 0.5;
     vector<Node*> shortest_path;
 
     //CONSTRUCTORS AND DESTRUCTORS
@@ -54,7 +55,7 @@ class PRM
     void drawNodes(GLuint nodeShader);
     void drawConnections(GLuint shaderProgram);
     void loadLineVertices(float* lineData);
-    void buildShortest();
+    bool buildShortest();
     void printShortest();
     int changeDrawState();
 

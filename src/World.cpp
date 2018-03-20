@@ -23,7 +23,7 @@ World::World(int w, int h)
 	width = w;
 	height = h;
 
-	myPRM = new PRM(w, h, (w*h)/4);
+	myPRM = new PRM(w, h, (w*2));
 	myCSpace = new CSpace();
 }
 
@@ -34,6 +34,7 @@ World::~World()
 	delete floor;
 	delete myPRM;
 	delete myCSpace;
+	if (path_ready) delete myAgent; //make sure to delete only we've dynamically allocated myAgent
 }
 
 /*----------------------------*/
@@ -252,8 +253,6 @@ bool World::setupGraphics()
 	glEnable(GL_DEPTH_TEST);
 
 	cout << "--------------------------------------------------" << endl;
-	cout << "--------------GRAPHICS SETUP COMPLETE-------------" << endl;
-	cout << "--------------------------------------------------" << endl;
 
 	return true;
 }
@@ -307,6 +306,13 @@ void World::draw(Camera * cam)
 
 	myCSpace->draw(phongProgram);
 
+	//draw agent
+	if (path_ready)
+	{
+		myAgent->draw(phongProgram);
+		myAgent->update(0.001);
+	}
+
 	glUseProgram(flatProgram);
 	glBindVertexArray(line_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, line_vbo[0]); //Set the line_vbo as the active
@@ -348,9 +354,9 @@ void World::init()
 
 	mat.setAmbient(glm::vec3(0.7, 0.7, 0));
 	mat.setDiffuse(glm::vec3(0.7, 0.7, 0));
-
 	obj->setMaterial(mat);
-	obj->setSize(Vec3D(1,1,1));
+
+	obj->setSize(Vec3D(width/4.0, width/4.0, width/4.0));
 	//obj->hasIBO = true;
 
 	myCSpace->addObstacle(obj);
@@ -365,6 +371,27 @@ void World::init()
 	cout << "\nAllocated lineData : " << total_lines * 6 << endl;
 
 	myPRM->loadLineVertices(lineData);
+
+	cout << "Calculating shortest_path...." << endl;
+	path_ready = myPRM->buildShortest();
+	//myPRM->printShortest();
+
+	if (path_ready)
+	{
+		//initialize myAgent
+		myAgent = new Agent(myPRM->shortest_path);
+		myAgent->setVertexInfo(SPHERE_START, SPHERE_VERTS);
+
+		mat.setAmbient(glm::vec3(0.5, 0, 0.9));
+		mat.setDiffuse(glm::vec3(0.5, 0, 0.9));
+		myAgent->setMaterial(mat);
+
+		float size = myPRM->agent_size;
+		myAgent->setSize(Vec3D(size, size, size));
+
+		cout << "Agent initialized" << endl;
+		cout << "--------------------------------------------------" << endl;
+	}
 }
 
 void World::changePRMState()

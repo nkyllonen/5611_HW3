@@ -32,6 +32,7 @@
 #include "WorldObject.h"
 #include "PRM.h"
 #include "CSpace.h"
+#include "Agent.h"
 
 #include "timerutil.h"
 #include "tiny_obj_loader.h"
@@ -82,7 +83,8 @@ private:
 public:
 	//PUBLIC VARIABLES
 	PRM* myPRM;
-	bool path_printed = false;
+	bool path_ready = false;
+	Agent* myAgent;
 
 	//CONSTRUCTORS AND DESTRUCTORS
 	World();

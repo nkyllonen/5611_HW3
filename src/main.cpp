@@ -204,16 +204,6 @@ int main(int argc, char *argv[]) {
 
 		SDL_GL_SwapWindow(window);
 		framecount++;
-
-		if (!myWorld->path_printed)
-		{
-			cout << "Calculating shortest_path...." << endl;
-			myWorld->myPRM->buildShortest();
-			//myWorld->myPRM->printShortest();
-			cout << "--------------------------------------------------" << endl;
-			myWorld->path_printed = true;
-		}
-
 	}//END looping While
 
 	//Clean Up
@@ -267,6 +257,19 @@ void onKeyDown(SDL_KeyboardEvent & event, Camera* cam, World* myWorld)
 	/////////////////////////////////
 	case SDLK_p:
 		myWorld->changePRMState();
+		break;
+	/////////////////////////////////
+	//ADJUST AGENT SPEED WITH +/-
+	/////////////////////////////////
+	case SDLK_PLUS:
+	case SDLK_KP_PLUS:
+		myWorld->myAgent->speed += 1.0;
+		cout << "--increased speed to " << myWorld->myAgent->speed << "--" << endl;
+		break;
+	case SDLK_MINUS:
+	case SDLK_KP_MINUS:
+		myWorld->myAgent->speed -= 1.0;
+		cout << "--decreased speed to " << myWorld->myAgent->speed << "--" << endl;
 		break;
 	default:
 		printf("ERROR: Invalid key pressed (%s)\n", SDL_GetKeyName(event.keysym.sym));

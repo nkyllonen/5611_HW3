@@ -17,7 +17,7 @@ PRM::PRM(int w, int h, int num)
   num_nodes = num + 2;                //+2 for strart and goal
   node_arr = new Node*[num_nodes];
   cout << "Allocated node_arr to length " << num_nodes << endl;
-  connection_radius_sq = w; //so we get everything connecting to each other
+  connection_radius_sq = w*4; //so we get everything connecting to each other
 }
 
 PRM::~PRM()
@@ -95,10 +95,10 @@ int PRM::generateNodes(int model_start, int model_verts, CSpace* cs)
     do
     {
       //subtract node_size so that they won't go over the edge of the area
-      x = ((double)rand()/RAND_MAX)*(width - node_size) - (width/2.0);
-      y = ((double)rand()/RAND_MAX)*(height - node_size) - (height/2.0);
+      x = ((double)rand()/RAND_MAX)*(width - agent_size) - (width/2.0);
+      y = ((double)rand()/RAND_MAX)*(height - agent_size) - (height/2.0);
       pos = Vec3D(x,y,z);
-    } while(!cs->isValidPosition(pos, node_size/2.0));
+    } while(!cs->isValidPosition(pos, agent_size/2.0));
 
 		temp = new Node(pos);
 
@@ -130,7 +130,7 @@ int PRM::connectNodes(CSpace* cs)
         if (len_sq <= connection_radius_sq) //close enough to connect
         {
           //figure out if path connecting nodes is valid in CSpace
-          if (cs->isValidSegment(dist, node_arr[i]->pos, node_size/2.0))
+          if (cs->isValidSegment(dist, node_arr[i]->pos, agent_size/2.0))
           {
             link_t l = link_t(len_sq, node_arr[k]); //create new link_t holding length sq'd and Node*
             node_arr[i]->neighbor_nodes.push_back(l);
@@ -224,10 +224,10 @@ void PRM::loadLineVertices(float* lineData)
   cout << "LineData values loaded\n" << endl;
 }//END loadLineVertices
 
-void PRM::buildShortest()
+bool PRM::buildShortest()
 {
   //leave room for other path finding algorithms?
-  UCS();
+  return UCS();
 }
 
 void PRM::printShortest()
@@ -267,7 +267,7 @@ int PRM::changeDrawState()
 /*----------------------------*/
 //this implementation is largely inspired/copied from:
 //  https://www.snip2code.com/Snippet/1017813/Uniform-Cost-Search-Algorithm-C---Implem
-void PRM::UCS()
+bool PRM::UCS()
 {
   Node* cur_node;
   Node* cur_neighbor;
@@ -318,7 +318,7 @@ void PRM::UCS()
         cur_el_path.pop_front();           //remove first element from list
       }
 
-      return;
+      return true;
     }
     else
     {
@@ -354,4 +354,5 @@ void PRM::UCS()
   }//END while !empty
 
   cout << "++PQ determined to be empty++" << endl;
+  return false;
 }
