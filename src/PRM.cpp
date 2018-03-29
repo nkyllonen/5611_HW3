@@ -98,7 +98,7 @@ int PRM::generateNodes(int model_start, int model_verts, CSpace* cs)
       x = ((double)rand()/RAND_MAX)*(width - agent_size) - (width/2.0);
       y = ((double)rand()/RAND_MAX)*(height - agent_size) - (height/2.0);
       pos = Vec3D(x,y,z);
-    } while(!cs->isValidPosition(pos, agent_size/2.0));
+    } while(!cs->isValidPosition(pos, agent_size/4.0));
 
 		temp = new Node(pos);
 
@@ -130,7 +130,7 @@ int PRM::connectNodes(CSpace* cs)
         if (len_sq <= connection_radius_sq) //close enough to connect
         {
           //figure out if path connecting nodes is valid in CSpace
-          if (cs->isValidSegment(dist, node_arr[i]->pos, agent_size/2.0))
+          if (cs->isValidSegment(dist, node_arr[i]->pos, agent_size/4.0))
           {
             link_t l = link_t(len_sq, node_arr[k]); //create new link_t holding length sq'd and Node*
             node_arr[i]->neighbor_nodes.push_back(l);
@@ -226,8 +226,10 @@ void PRM::loadLineVertices(float* lineData)
 
 bool PRM::buildShortest()
 {
-  //leave room for other path finding algorithms?
-  return UCS();
+  if (alg_state == UCS)  return UniformCost();
+  else if (alg_state == ASTAR) return Astar(alg_weight);
+
+  return false;
 }
 
 void PRM::printShortest()
@@ -267,8 +269,10 @@ int PRM::changeDrawState()
 /*----------------------------*/
 //this implementation is largely inspired/copied from:
 //  https://www.snip2code.com/Snippet/1017813/Uniform-Cost-Search-Algorithm-C---Implem
-bool PRM::UCS()
+bool PRM::UniformCost()
 {
+  cout << "--Running a Uniform Cost Search--" << endl;
+
   Node* cur_node;
   Node* cur_neighbor;
   int pos = 0, num = 0;
@@ -341,6 +345,103 @@ bool PRM::UCS()
           //extend the paths in the PQ to include cur_node's neighbors
           temp_el.path.push_back(cur_neighbor);
           temp_el.cost += cur_node->neighbor_nodes[i].length_sq;
+
+          //push extended element onto PQ
+          PQ.push(temp_el);
+        }
+        else
+        {
+          //cout << "already visited this neighbor" << endl;
+        }
+      }
+    }
+  }//END while !empty
+
+  cout << "++PQ determined to be empty++" << endl;
+  return false;
+}
+
+//A*: heuristic = distance to goal
+bool PRM::Astar(float weight)
+{
+  cout << "--Running A* with weight " << weight << "--" << endl;
+
+  Node* cur_node;
+  Node* cur_neighbor;
+  int pos = 0, num = 0;
+  priority_queue <q_element, vector<q_element>, q_element_comparison> PQ;
+
+  Node* start_node = node_arr[0];
+  Node* goal_node = node_arr[num_nodes-1];
+  Vec3D goal_pos = goal_node->pos;
+
+  cout << "start node at : ";
+  start_node->pos.print();
+  cout << "goal node at : ";
+  goal_pos.print();
+
+  start_node->visited = true;            //mark start has having been visited
+
+  //1. add starting node to PQ
+  q_element vstart;
+  vstart.path.push_back(start_node);
+  vstart.cost = 0;
+  PQ.push(vstart);
+
+  //2. loop until we finish
+  while (!PQ.empty())
+  {
+    q_element cur_el, temp_el;
+    cur_el = PQ.top();                  //hold onto maximum priority element
+    cur_node = cur_el.path.back();      //access last element in cur_el's list of Nodes
+
+    PQ.pop();                           //"dequeue the maximum priority element from the queue"
+
+    cur_node->visited = true;
+
+    //check if we're at the goal
+    if (cur_node == goal_node)
+    {
+      cout << "\n+++++Goal reached!+++++" << endl;
+
+      //need to add path to shortest_path
+      list<Node*> cur_el_path = cur_el.path;
+      num = cur_el_path.size();
+      Node* temp_node;
+
+      for (int i = 0; i < num; i++)
+      {
+        temp_node = cur_el_path.front();   //grab very first element
+        shortest_path.push_back(temp_node);
+        cur_el_path.pop_front();           //remove first element from list
+      }
+
+      return true;
+    }
+    else
+    {
+      //loop through neighbors of cur_el
+      //--> "insert all the children of the dequeued element, with the cumulative costs as priority"
+      num = cur_node->neighbor_nodes.size();
+
+      for (int i = 0; i < num; i++)
+      {
+        cur_neighbor = cur_node->neighbor_nodes[i].node;
+
+        //check if we've visit this node before
+        if (!cur_neighbor->visited)
+        {
+          //cur_neighbor->visited = true;
+          temp_el = cur_el;
+
+          //extend the paths in the PQ to include cur_node's neighbors
+          temp_el.path.push_back(cur_neighbor);
+
+          //use heuristic and weight to calculate cost
+          Vec3D to_goal = goal_pos - cur_node->neighbor_nodes[i].node->pos;
+          float dist_to_goal_sq = dotProduct(to_goal, to_goal);
+
+          temp_el.cost += cur_node->neighbor_nodes[i].length_sq + weight*dist_to_goal_sq;
 
           //push extended element onto PQ
           PQ.push(temp_el);

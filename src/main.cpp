@@ -62,15 +62,24 @@ int main(int argc, char *argv[]) {
 	srand(time(0));
 
 	//CHECK FOR WIDTH AND HEIGHT VALUES
-	if (argc != 3)
+	if (argc != 5)
 	{
-		cout << "\nERROR: Incorrect usage. Expected ./a.out WIDTH HEIGHT\n";
+		cout << "\nERROR: Incorrect usage. Expected ./a.out WIDTH HEIGHT [U(UCS) || A(A*)] WEIGHT\n";
 		exit(0);
 	}
 
 	int w = atoi(argv[1]);
 	int h = atoi(argv[2]);
+	char alg = *argv[3];
+	int weight = atoi(argv[4]);
 	printf("Floor width: %i by height: %i\n", w, h);
+	printf("alg entered: %c with weight: %i\n", alg, weight);
+
+	if (!(alg == 'U' || alg == 'A') && weight < 0)
+	{
+		cout << "ERROR: invalid search parameters entered." << endl;
+		exit(0);
+	}
 
 	/////////////////////////////////
 	//INITIALIZE SDL WINDOW
@@ -99,6 +108,13 @@ int main(int argc, char *argv[]) {
 		SDL_GL_DeleteContext(context);
 		SDL_Quit();
 		exit(0);
+	}
+
+	if (alg == 'U') myWorld->myPRM->alg_state = UCS;
+	else if (alg == 'A')
+	{
+		myWorld->myPRM->alg_state = ASTAR;
+		myWorld->myPRM->alg_weight = weight;
 	}
 
 	myWorld->init();

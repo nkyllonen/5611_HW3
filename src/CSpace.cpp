@@ -67,7 +67,7 @@ bool CSpace::isValidSegment(Vec3D AtoB, Vec3D ptA, float agent_radius)
 
     //some pythag --> triangle ACD
     CtoD_len_sq = dotProduct(AtoC, AtoC) - pow(projAC, 2);
-    radius_sq = pow(obstacles[i]->getSize().getX()/4.0, 2) + agent_radius; //extend by extent of agent
+    radius_sq = pow(obstacles[i]->getSize().getX()/4.0, 2) + agent_radius/4.0; //extend by extent of agent
 
     if (CtoD_len_sq <= radius_sq) return false;
   }

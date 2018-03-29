@@ -13,7 +13,14 @@
 enum state
 {
   DRAW_ALL,
-  DRAW_PATH
+  DRAW_PATH,
+  DRAW_NONE
+};
+
+enum algorithm
+{
+  UCS,
+  ASTAR
 };
 
 class PRM
@@ -31,12 +38,15 @@ class PRM
     state draw_state = DRAW_ALL;
 
     //PRIVATE FUNCTIONS
-    bool UCS();
+    bool UniformCost();
+    bool Astar(float weight);
 
   public:
     //PUBLIC VARIABLES
     float agent_size = 1.0;
     vector<Node*> shortest_path;
+    algorithm alg_state = UCS;
+    float alg_weight = 0;
 
     //CONSTRUCTORS AND DESTRUCTORS
     PRM();
