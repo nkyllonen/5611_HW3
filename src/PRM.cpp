@@ -98,7 +98,7 @@ int PRM::generateNodes(int model_start, int model_verts, CSpace* cs)
       x = ((double)rand()/RAND_MAX)*(width - agent_size) - (width/2.0);
       y = ((double)rand()/RAND_MAX)*(height - agent_size) - (height/2.0);
       pos = Vec3D(x,y,z);
-    } while(!cs->isValidPosition(pos, agent_size/4.0));
+    } while(!cs->isValidPosition(pos, agent_size));
 
 		temp = new Node(pos);
 
@@ -130,7 +130,7 @@ int PRM::connectNodes(CSpace* cs)
         if (len_sq <= connection_radius_sq) //close enough to connect
         {
           //figure out if path connecting nodes is valid in CSpace
-          if (cs->isValidSegment(dist, node_arr[i]->pos, agent_size/4.0))
+          if (cs->isValidSegment(dist, node_arr[i]->pos, agent_size))
           {
             link_t l = link_t(len_sq, node_arr[k]); //create new link_t holding length sq'd and Node*
             node_arr[i]->neighbor_nodes.push_back(l);
@@ -300,6 +300,8 @@ bool PRM::UniformCost()
     q_element cur_el, temp_el;
     cur_el = PQ.top();                  //hold onto maximum priority element
     cur_node = cur_el.path.back();      //access last element in cur_el's list of Nodes
+    //cout << "Expanding ";
+    //cur_node->pos.print();
 
     PQ.pop();                           //"dequeue the maximum priority element from the queue"
 
@@ -342,9 +344,11 @@ bool PRM::UniformCost()
           //cur_neighbor->visited = true;
           temp_el = cur_el;
 
+          //cout << "Visiting: ";
+
           //extend the paths in the PQ to include cur_node's neighbors
           temp_el.path.push_back(cur_neighbor);
-          temp_el.cost += cur_node->neighbor_nodes[i].length_sq;
+          temp_el.cost += sqrt(cur_node->neighbor_nodes[i].length_sq);
 
           //push extended element onto PQ
           PQ.push(temp_el);
@@ -441,7 +445,7 @@ bool PRM::Astar(float weight)
           Vec3D to_goal = goal_pos - cur_node->neighbor_nodes[i].node->pos;
           float dist_to_goal_sq = dotProduct(to_goal, to_goal);
 
-          temp_el.cost += cur_node->neighbor_nodes[i].length_sq + weight*dist_to_goal_sq;
+          temp_el.cost += sqrt(cur_node->neighbor_nodes[i].length_sq) + sqrt(weight*dist_to_goal_sq);
 
           //push extended element onto PQ
           PQ.push(temp_el);

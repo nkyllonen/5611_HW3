@@ -34,7 +34,7 @@ World::~World()
 	delete floor;
 	delete myPRM;
 	delete myCSpace;
-	if (path_ready) delete myAgent; //make sure to delete only we've dynamically allocated myAgent
+	if (path_ready) delete myAgent; //make sure to delete only if we've dynamically allocated myAgent
 }
 
 /*----------------------------*/
