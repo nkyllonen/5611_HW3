@@ -28,23 +28,22 @@ class PRM
   private:
     int width = 1;
     int height = 1;
-    float connection_radius_sq = 10;
-
-    int num_nodes = 0;
-  	Node** node_arr;
     float node_size = 0.25;
     int num_connections = 0;
 
     state draw_state = DRAW_ALL;
 
     //PRIVATE FUNCTIONS
-    bool UniformCost();
-    bool Astar(float weight);
+    vector<Node*> UniformCost(Node* start_node, Node* goal_node);
+    vector<Node*> Astar(float weight, Node* start_node, Node* goal_node);
 
   public:
     //PUBLIC VARIABLES
+    int num_nodes = 0;
+  	Node** node_arr;
+    float connection_radius_sq = 10;
+
     float agent_size = 1.0;
-    vector<Node*> shortest_path;
     algorithm alg_state = UCS;
     float alg_weight = 0;
 
@@ -65,10 +64,10 @@ class PRM
     void drawNodes(GLuint nodeShader);
     void drawConnections(GLuint shaderProgram);
     void loadLineVertices(float* lineData);
-    bool buildShortest();
-    void printShortest();
+    vector<Node*> buildShortest(Node* start_node, Node* goal_node);
     int changeDrawState();
-
+    Node* generateStart(int model_start, int model_verts);
+    Node* generateGoal(int model_start, int model_verts);
 };
 
 //other structures necessary for PRM's Uniform Cost Search

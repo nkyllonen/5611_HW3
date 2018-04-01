@@ -8,31 +8,17 @@ Agent::Agent() : WorldObject()
   vel = Vec3D();
 }
 
-Agent::Agent(std::vector<Node*> p) : WorldObject()
+Agent::Agent(Node* s, Node* g) : WorldObject()
 {
-  path = p;
-
-  //determine initial pos and vel from given path
-  if (path.size() > 0)
-  {
-    pos = p[0]->pos;                   //start at start
-    vel = path[1]->pos - path[0]->pos; //from start to first Node
-    vel.normalize();                   //make sure it's a unit vector!
-
-    cout << "Agent starting at: ";
-    pos.print();
-    cout << "\t--> with velocity: ";
-    vel.print();
-  }
-  else
-  {
-    cout << "ERROR: EMPTY PATH VECTOR GIVEN TO AGENT" << endl;
-  }
+  vel = Vec3D();
+  start_node = s;
+  goal_node = g;
 }
 
 Agent::~Agent()
 {
-  //don't need to delete vector since it holds Node*
+  delete start_node;
+  delete goal_node;
 }
 
 /*----------------------------*/
@@ -76,4 +62,88 @@ void Agent::update(double dt)
 
   //2. update posiiton using velocity
   pos = pos + speed*dt*vel;
+}
+
+void Agent::calcPath(PRM* myPRM, CSpace* cs)
+{
+  //1. connect start_node and goal_node to myPRM's nodes
+  //loop through all between nodes and connect if close enough to s/g
+  Vec3D sToi;
+  Vec3D gToi;
+  int num = myPRM->num_nodes;
+  float len_sq = 1;
+  link_t l;
+
+  for (int i = 0; i < num; i++)
+  {
+    sToi = myPRM->node_arr[i]->pos - start_node->pos; //start --> i
+    gToi = myPRM->node_arr[i]->pos - goal_node->pos; //goal --> i
+
+    //check for start to i
+    len_sq = dotProduct(sToi, sToi);
+    if (len_sq <= myPRM->connection_radius_sq) //close enough to connect
+    {
+      printf("Connected node %i to start\n", i);
+      //figure out if path connecting nodes is valid in CSpace
+      if (cs->isValidSegment(sToi, start_node->pos, myPRM->agent_size))
+      {
+        //connect start to i
+        l = link_t(len_sq, myPRM->node_arr[i]);
+        start_node->neighbor_nodes.push_back(l);
+
+        //connect i to start
+        l = link_t(len_sq, start_node);
+        myPRM->node_arr[i]->neighbor_nodes.push_back(l);
+      }
+    }
+
+    //check for goal to i
+    len_sq = dotProduct(gToi, gToi);
+    if (len_sq <= myPRM->connection_radius_sq) //close enough to connect
+    {
+      printf("Connected node %i to goal\n", i);
+      //figure out if path connecting nodes is valid in CSpace
+      if (cs->isValidSegment(gToi, goal_node->pos, myPRM->agent_size))
+      {
+        //connect goal to i
+        l = link_t(len_sq, myPRM->node_arr[i]);
+        goal_node->neighbor_nodes.push_back(l);
+
+        //connect i to goal
+        l = link_t(len_sq, goal_node);
+        myPRM->node_arr[i]->neighbor_nodes.push_back(l);
+      }
+    }
+  }
+
+  //2. use PRM to calc shortest path
+  cout << "Calculating shortest_path...." << endl;
+  path = myPRM->buildShortest(start_node, goal_node);
+
+  //3. determine initial pos and vel from calculated path
+  if (path.size() > 0)
+  {
+    pos = start_node->pos;                   //start at start
+    vel = path[1]->pos - path[0]->pos; //from start to first Node
+    vel.normalize();                   //make sure it's a unit vector!
+
+    cout << "Agent starting at: ";
+    pos.print();
+    cout << "\t--> with velocity: ";
+    vel.print();
+  }
+  else
+  {
+    cout << "ERROR: EMPTY PATH VECTOR GIVEN TO AGENT" << endl;
+  }
+}
+
+void Agent::drawPath(GLuint nodeShader)
+{
+  int num = path.size();
+
+  for (int i = 0; i < num; i++)
+  {
+    path[i]->draw(nodeShader);
+  }
 }

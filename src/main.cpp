@@ -62,7 +62,12 @@ int main(int argc, char *argv[]) {
 	srand(time(0));
 
 	//CHECK FOR WIDTH AND HEIGHT VALUES
-	if (argc != 5)
+	if (argc == 4 && *argv[3] != 'U')
+	{
+		cout << "\nERROR: Incorrect usage. Expected ./a.out WIDTH HEIGHT U(UCS)\n";
+		exit(0);
+	}
+	else if (argc == 5 && *argv[3] != 'A')
 	{
 		cout << "\nERROR: Incorrect usage. Expected ./a.out WIDTH HEIGHT [U(UCS) || A(A*)] WEIGHT\n";
 		exit(0);
@@ -71,8 +76,14 @@ int main(int argc, char *argv[]) {
 	int w = atoi(argv[1]);
 	int h = atoi(argv[2]);
 	char alg = *argv[3];
-	int weight = atoi(argv[4]);
+	int weight = 0;
 	printf("Floor width: %i by height: %i\n", w, h);
+
+	if (argc == 5)
+	{
+		weight = atoi(argv[4]);
+	}
+
 	printf("alg entered: %c with weight: %i\n", alg, weight);
 
 	if (!(alg == 'U' || alg == 'A') && weight < 0)
@@ -110,11 +121,11 @@ int main(int argc, char *argv[]) {
 		exit(0);
 	}
 
-	if (alg == 'U') myWorld->myPRM->alg_state = UCS;
+	if (alg == 'U') myWorld->path_alg = UCS;
 	else if (alg == 'A')
 	{
-		myWorld->myPRM->alg_state = ASTAR;
-		myWorld->myPRM->alg_weight = weight;
+		myWorld->path_alg = ASTAR;
+		myWorld->path_alg_weight = weight;
 	}
 
 	myWorld->init();
@@ -188,7 +199,7 @@ int main(int argc, char *argv[]) {
 						mouse_x = windowEvent.motion.x;
 						mouse_y = windowEvent.motion.y;
 						mouseMove(windowEvent.motion, cam, horizontal_angle, vertical_angle);
-						// recentering = true;
+						recentering = true;
 					}
 				default:
 					break;
@@ -279,13 +290,13 @@ void onKeyDown(SDL_KeyboardEvent & event, Camera* cam, World* myWorld)
 	/////////////////////////////////
 	case SDLK_PLUS:
 	case SDLK_KP_PLUS:
-		myWorld->myAgent->speed += 1.0;
-		cout << "--increased speed to " << myWorld->myAgent->speed << "--" << endl;
+		myWorld->myAgents[myWorld->cur_agent_i]->speed += 1.0;
+		cout << "--increased speed to " << myWorld->myAgents[myWorld->cur_agent_i]->speed << "--" << endl;
 		break;
 	case SDLK_MINUS:
 	case SDLK_KP_MINUS:
-		myWorld->myAgent->speed -= 1.0;
-		cout << "--decreased speed to " << myWorld->myAgent->speed << "--" << endl;
+		myWorld->myAgents[myWorld->cur_agent_i]->speed -= 1.0;
+		cout << "--decreased speed to " << myWorld->myAgents[myWorld->cur_agent_i]->speed << "--" << endl;
 		break;
 	default:
 		printf("ERROR: Invalid key pressed (%s)\n", SDL_GetKeyName(event.keysym.sym));

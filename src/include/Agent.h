@@ -4,6 +4,7 @@
 #include "WorldObject.h"
 #include "Vec3D.h"
 #include "Node.h"
+#include "PRM.h"
 
 #include <vector>
 
@@ -16,14 +17,18 @@ class Agent : public WorldObject
   public:
     //PUBLIC VARIABLES
     float speed = 10;
+    Node* start_node;
+    Node* goal_node;
 
     //CONSTRUCTORS + DESTRUCTORS
     Agent();
-    Agent(std::vector<Node*> p);
+    Agent(Node* s, Node* g);
     ~Agent();
 
     //OTHERS
     void update(double dt);
+    void calcPath(PRM* myPRM, CSpace* cs);
+    void drawPath(GLuint nodeShader);
 
 };
 

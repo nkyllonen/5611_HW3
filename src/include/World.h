@@ -79,12 +79,15 @@ private:
 	WorldObject* floor;
 	int num_nodes = 0;
 	CSpace* myCSpace;
+	bool path_ready = false;
 
 public:
 	//PUBLIC VARIABLES
 	PRM* myPRM;
-	bool path_ready = false;
-	Agent* myAgent;
+	vector<Agent*> myAgents;
+	int cur_agent_i = 0;
+	algorithm path_alg = UCS;
+	int path_alg_weight = 0;
 
 	//CONSTRUCTORS AND DESTRUCTORS
 	World();

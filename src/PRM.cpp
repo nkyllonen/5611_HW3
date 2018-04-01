@@ -54,8 +54,6 @@ int PRM::generateNodes(int model_start, int model_verts, CSpace* cs)
 {
   Vec3D size = Vec3D(node_size, node_size, node_size);
 	Vec3D pos = Vec3D();
-	Vec3D start_color = Vec3D(0,1,0);
-	Vec3D goal_color = Vec3D(1,0,0);
 	Vec3D other_color = Vec3D(0,0,0.5);
 
   Material mat = Material();
@@ -64,32 +62,11 @@ int PRM::generateNodes(int model_start, int model_verts, CSpace* cs)
 	float x = 0, y = 0, z = 0;
   Node* temp;
 
-	//place start and goal across from each other
-	pos = Vec3D(-width/2 + (double)rand()/RAND_MAX + node_size, -height/2 + (double)rand()/RAND_MAX + node_size, z);
-	temp = new Node(pos);
-	temp->size = 2*size;
-	temp->setVertexInfo(model_start, model_verts);
-
-  mat.setAmbient(util::vec3DtoGLM(start_color));
-  mat.setDiffuse(util::vec3DtoGLM(start_color));
-	temp->mat = mat;
-	node_arr[0] = temp;
-
-	pos = Vec3D(width/2 - (double)rand()/RAND_MAX - node_size, height/2 - (double)rand()/RAND_MAX - node_size, z);
-	temp = new Node(pos);
-  temp->size = 2*size;
-	temp->setVertexInfo(model_start, model_verts);
-
-  mat.setAmbient(util::vec3DtoGLM(goal_color));
-  mat.setDiffuse(util::vec3DtoGLM(goal_color));
-	temp->mat = mat;
-	node_arr[num_nodes-1] = temp;
-
-  //set color for other nodes
+  //set color for in between nodes
   mat.setAmbient(util::vec3DtoGLM(other_color));
   mat.setDiffuse(util::vec3DtoGLM(other_color));
 
-	for (int i = 1; i < num_nodes-1; i++)
+	for (int i = 0; i < num_nodes; i++)
 	{
     //loop while checking if generated position is not valid
     do
@@ -155,12 +132,7 @@ void PRM::drawNodes(GLuint nodeShader)
   }
   else if (draw_state == DRAW_PATH)
   {
-    int num = shortest_path.size();
 
-    for (int i = 0; i < num; i++)
-    {
-      shortest_path[i]->draw(nodeShader);
-    }
   }
 }
 
@@ -174,7 +146,7 @@ void PRM::drawConnections(GLuint shaderProgram)
 
   glLineWidth(2);
 	if (draw_state == DRAW_ALL) glDrawArrays(GL_LINES, 0, num_connections * 2); //*2 since 2 vertices per connection?
-  else if (draw_state == DRAW_PATH) glDrawArrays(GL_LINES, 0, shortest_path.size() * 2);
+  //else if (draw_state == DRAW_PATH) glDrawArrays(GL_LINES, 0, shortest_path.size() * 2);
 }
 
 /*--------------------------------------------------------------*/
@@ -209,7 +181,7 @@ void PRM::loadLineVertices(float* lineData)
   }
   else if (draw_state == DRAW_PATH)
   {
-    int num = shortest_path.size();
+    /*int num = shortest_path.size();
 
   	for (int i = 0; i < num-1; i++)
   	{
@@ -218,29 +190,17 @@ void PRM::loadLineVertices(float* lineData)
 
       util::loadVecValues(lineData, pi, count);
       util::loadVecValues(lineData, pii, count);
-  	}
+  	}*/
   }
 
   cout << "LineData values loaded\n" << endl;
 }//END loadLineVertices
 
-bool PRM::buildShortest()
+vector<Node*> PRM::buildShortest(Node* start, Node* goal)
 {
-  if (alg_state == UCS)  return UniformCost();
-  else if (alg_state == ASTAR) return Astar(alg_weight);
-
-  return false;
-}
-
-void PRM::printShortest()
-{
-  int num = shortest_path.size();
-
-  for (int i = 0; i < num; i++)
-  {
-    printf("path[%i] at ", i);
-    shortest_path[i]->pos.print();
-  }
+  if (alg_state == UCS)  return UniformCost(start, goal);
+  else if (alg_state == ASTAR) return Astar(alg_weight, start, goal);
+  else return vector<Node*>();
 }
 
 int PRM::changeDrawState()
@@ -251,7 +211,7 @@ int PRM::changeDrawState()
   {
     cout << "\n--->Drawing path only" << endl;
     draw_state = DRAW_PATH;
-    num_lines = shortest_path.size();
+    //num_lines = shortest_path.size();
   }
   else if (draw_state == DRAW_PATH)
   {
@@ -264,12 +224,56 @@ int PRM::changeDrawState()
   return num_lines;
 }
 
+Node* PRM::generateStart(int model_start, int model_verts)
+{
+  Vec3D size = Vec3D(node_size, node_size, node_size);
+  Vec3D start_color = Vec3D(0,1,0);
+
+  Material mat = Material();
+	mat.setSpecular(glm::vec3(0, 0, 0));
+
+  Node* temp;
+
+	//place start at bottom left corner
+	Vec3D pos = Vec3D(-width/2 + (double)rand()/RAND_MAX + node_size, -height/2 + (double)rand()/RAND_MAX + node_size, 0);
+	temp = new Node(pos);
+	temp->size = 2*size;
+	temp->setVertexInfo(model_start, model_verts);
+
+  mat.setAmbient(util::vec3DtoGLM(start_color));
+  mat.setDiffuse(util::vec3DtoGLM(start_color));
+	temp->mat = mat;
+	return temp;
+}
+
+Node* PRM::generateGoal(int model_start, int model_verts)
+{
+  Vec3D size = Vec3D(node_size, node_size, node_size);
+  Vec3D goal_color = Vec3D(1,0,0);
+
+  Material mat = Material();
+	mat.setSpecular(glm::vec3(0, 0, 0));
+
+  Node* temp;
+
+	//place goal at top right corner
+	Vec3D pos = Vec3D(width/2 - (double)rand()/RAND_MAX - node_size, height/2 - (double)rand()/RAND_MAX - node_size, 0);
+	temp = new Node(pos);
+	temp->size = 2*size;
+	temp->setVertexInfo(model_start, model_verts);
+
+  mat.setAmbient(util::vec3DtoGLM(goal_color));
+  mat.setDiffuse(util::vec3DtoGLM(goal_color));
+	temp->mat = mat;
+	return temp;
+}
+
 /*----------------------------*/
 // PRIVATE FUNCTIONS
 /*----------------------------*/
 //this implementation is largely inspired/copied from:
 //  https://www.snip2code.com/Snippet/1017813/Uniform-Cost-Search-Algorithm-C---Implem
-bool PRM::UniformCost()
+vector<Node*> PRM::UniformCost(Node* start_node, Node* goal_node)
 {
   cout << "--Running a Uniform Cost Search--" << endl;
 
@@ -277,9 +281,7 @@ bool PRM::UniformCost()
   Node* cur_neighbor;
   int pos = 0, num = 0;
   priority_queue <q_element, vector<q_element>, q_element_comparison> PQ;
-
-  Node* start_node = node_arr[0];
-  Node* goal_node = node_arr[num_nodes-1];
+  vector<Node*> shortest_path;
 
   cout << "start node at : ";
   start_node->pos.print();
@@ -324,7 +326,7 @@ bool PRM::UniformCost()
         cur_el_path.pop_front();           //remove first element from list
       }
 
-      return true;
+      return shortest_path;
     }
     else
     {
@@ -362,11 +364,11 @@ bool PRM::UniformCost()
   }//END while !empty
 
   cout << "++PQ determined to be empty++" << endl;
-  return false;
+  return vector<Node*>();
 }
 
 //A*: heuristic = distance to goal
-bool PRM::Astar(float weight)
+vector<Node*> PRM::Astar(float weight, Node* start_node, Node* goal_node)
 {
   cout << "--Running A* with weight " << weight << "--" << endl;
 
@@ -374,10 +376,8 @@ bool PRM::Astar(float weight)
   Node* cur_neighbor;
   int pos = 0, num = 0;
   priority_queue <q_element, vector<q_element>, q_element_comparison> PQ;
-
-  Node* start_node = node_arr[0];
-  Node* goal_node = node_arr[num_nodes-1];
   Vec3D goal_pos = goal_node->pos;
+  vector<Node*> shortest_path;
 
   cout << "start node at : ";
   start_node->pos.print();
@@ -420,7 +420,7 @@ bool PRM::Astar(float weight)
         cur_el_path.pop_front();           //remove first element from list
       }
 
-      return true;
+      return shortest_path;
     }
     else
     {
@@ -459,5 +459,5 @@ bool PRM::Astar(float weight)
   }//END while !empty
 
   cout << "++PQ determined to be empty++" << endl;
-  return false;
+  return vector<Node*>();
 }

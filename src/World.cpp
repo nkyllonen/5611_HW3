@@ -34,7 +34,11 @@ World::~World()
 	delete floor;
 	delete myPRM;
 	delete myCSpace;
-	if (path_ready) delete myAgent; //make sure to delete only if we've dynamically allocated myAgent
+
+	for (int i = 0; i < myAgents.size(); i++)
+	{
+		delete myAgents[i];
+	}
 }
 
 /*----------------------------*/
@@ -306,11 +310,11 @@ void World::draw(Camera * cam)
 
 	myCSpace->draw(phongProgram);
 
-	//draw agent
-	if (path_ready)
+	//draw agents
+	for (int i = 0; i < myAgents.size(); i++)
 	{
-		myAgent->draw(phongProgram);
-		myAgent->update(0.001);
+		myAgents[i]->draw(phongProgram);
+		myAgents[i]->update(0.001);
 	}
 
 	glUseProgram(flatProgram);
@@ -349,7 +353,6 @@ void World::init()
 
 	//2. add obstacle(s) to CSpace
 	WorldObject* obj = new WorldObject(Vec3D(0,0,0));
-	//obj->setVertexInfo(0, total_obj_triangles);
 	obj->setVertexInfo(SPHERE_START, SPHERE_VERTS);
 
 	mat.setAmbient(glm::vec3(0.7, 0.7, 0));
@@ -360,6 +363,18 @@ void World::init()
 	//obj->hasIBO = true;
 
 	myCSpace->addObstacle(obj);
+
+	WorldObject* obj2 = new WorldObject(Vec3D(width/3, -width/4, 0));
+	obj2->setVertexInfo(SPHERE_START, SPHERE_VERTS);
+
+	mat.setAmbient(glm::vec3(0.7, 0.7, 0));
+	mat.setDiffuse(glm::vec3(0.7, 0.7, 0));
+	obj2->setMaterial(mat);
+
+	obj2->setSize(Vec3D(width/5.0, width/5.0, width/5.0));
+	//obj->hasIBO = true;
+
+	myCSpace->addObstacle(obj2);
 
 	//3. initialize all nodes with random positions along floor
 	num_nodes = myPRM->generateNodes(CUBE_START, CUBE_VERTS, myCSpace);
@@ -372,25 +387,30 @@ void World::init()
 
 	myPRM->loadLineVertices(lineData);
 
-	cout << "Calculating shortest_path...." << endl;
-	path_ready = myPRM->buildShortest();
+	//cout << "Calculating shortest_path...." << endl;
+	//path_ready = myPRM->buildShortest();
 	//myPRM->printShortest();
 
-	if (path_ready)
+	//initialize myAgents
+	Agent* a = new Agent(myPRM->generateStart(CUBE_START, CUBE_VERTS), myPRM->generateGoal(CUBE_START, CUBE_VERTS));
+	a->setVertexInfo(SPHERE_START, SPHERE_VERTS);
+
+	mat.setAmbient(glm::vec3(0.5, 0, 0.9));
+	mat.setDiffuse(glm::vec3(0.5, 0, 0.9));
+	a->setMaterial(mat);
+
+	float size = myPRM->agent_size;
+	a->setSize(Vec3D(size, size, size));
+
+	myAgents.push_back(a);
+
+	cout << "Agent initialized" << endl;
+	cout << "--------------------------------------------------" << endl;
+
+	//determine agent paths
+	for (int i = 0; i < myAgents.size(); i++)
 	{
-		//initialize myAgent
-		myAgent = new Agent(myPRM->shortest_path);
-		myAgent->setVertexInfo(SPHERE_START, SPHERE_VERTS);
-
-		mat.setAmbient(glm::vec3(0.5, 0, 0.9));
-		mat.setDiffuse(glm::vec3(0.5, 0, 0.9));
-		myAgent->setMaterial(mat);
-
-		float size = myPRM->agent_size;
-		myAgent->setSize(Vec3D(size, size, size));
-
-		cout << "Agent initialized" << endl;
-		cout << "--------------------------------------------------" << endl;
+		myAgents[i]->calcPath(myPRM, myCSpace);
 	}
 }
 
