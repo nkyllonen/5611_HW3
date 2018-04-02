@@ -14,38 +14,30 @@ PRM::PRM(int w, int h, int num)
 {
   width = w;
   height = h;
-  num_nodes = num + 2;                //+2 for strart and goal
-  node_arr = new Node*[num_nodes];
-  cout << "Allocated node_arr to length " << num_nodes << endl;
+  num_nodes = num;
+  //node_vec = new Node*[num_nodes];
+  //cout << "Allocated node_vec to length " << num_nodes << endl;
   connection_radius_sq = w*4; //so we get everything connecting to each other
 }
 
 PRM::~PRM()
 {
   //delete each ptr in
-	for (int i = 0; i < num_nodes; i++)
+	for (int i = 0; i < node_vec.size(); i++)
 	{
-		delete node_arr[i];
+		delete node_vec[i];
 	}
 
-	delete[] node_arr;
+	//delete[] node_vec;
 }
 
 /*----------------------------*/
 // SETTERS
 /*----------------------------*/
-void PRM::setNumNodes(int n)
-{
-  num_nodes = n;
-}
 
 /*----------------------------*/
 // GETTERS
 /*----------------------------*/
-int PRM::getNumNodes()
-{
-  return num_nodes;
-}
 
 /*----------------------------*/
 // OTHERS
@@ -83,7 +75,7 @@ int PRM::generateNodes(int model_start, int model_verts, CSpace* cs)
   	temp->setVertexInfo(model_start, model_verts);
   	temp->mat = mat;
 
-		node_arr[i] = temp;
+		node_vec.push_back(temp);
 	}
 
   return num_nodes;
@@ -96,21 +88,21 @@ int PRM::connectNodes(CSpace* cs)
 
   for (int i = 0; i < num_nodes; i++)
   {
-    //compare node_arr[i] against other nodes
+    //compare node_vec[i] against other nodes
     for (int k = 0; k < num_nodes; k++)
     {
       if (k != i) //don't check against itself
       {
-        dist = node_arr[k]->pos - node_arr[i]->pos; //dist: i --> k
+        dist = node_vec[k]->pos - node_vec[i]->pos; //dist: i --> k
         len_sq = dotProduct(dist, dist);
 
         if (len_sq <= connection_radius_sq) //close enough to connect
         {
           //figure out if path connecting nodes is valid in CSpace
-          if (cs->isValidSegment(dist, node_arr[i]->pos, agent_size))
+          if (cs->isValidSegment(dist, node_vec[i]->pos, agent_size))
           {
-            link_t l = link_t(len_sq, node_arr[k]); //create new link_t holding length sq'd and Node*
-            node_arr[i]->neighbor_nodes.push_back(l);
+            link_t l = link_t(len_sq, node_vec[k]); //create new link_t holding length sq'd and Node*
+            node_vec[i]->neighbor_nodes.push_back(l);
             num_connections++;
           }
         }
@@ -125,9 +117,9 @@ void PRM::drawNodes(GLuint nodeShader)
 {
   if (draw_state == DRAW_ALL)
   {
-    for (int i = 0; i < num_nodes; i++)
+    for (int i = 0; i < node_vec.size(); i++)
     {
-      node_arr[i]->draw(nodeShader);
+      node_vec[i]->draw(nodeShader);
     }
   }
   else if (draw_state == DRAW_PATH)
@@ -145,7 +137,7 @@ void PRM::drawConnections(GLuint shaderProgram)
   glUniform3f(uniform_color, color[0], color[1], color[2]);
 
   glLineWidth(2);
-	if (draw_state == DRAW_ALL) glDrawArrays(GL_LINES, 0, num_connections * 2); //*2 since 2 vertices per connection?
+	if (draw_state == DRAW_ALL) glDrawArrays(GL_LINES, 0, num_connections * 2); //*2 since 2 vertices per connection
   //else if (draw_state == DRAW_PATH) glDrawArrays(GL_LINES, 0, shortest_path.size() * 2);
 }
 
@@ -163,12 +155,12 @@ void PRM::loadLineVertices(float* lineData)
   {
     vector<link_t> neighbors;
 
-  	for (int i = 0; i < num_nodes; i++)
+  	for (int i = 0; i < node_vec.size(); i++)
   	{
   		//go through each node's list of connections
-  		neighbors = node_arr[i]->neighbor_nodes;
+  		neighbors = node_vec[i]->neighbor_nodes;
   		i_connections = neighbors.size();
-  		pi = node_arr[i]->pos;
+  		pi = node_vec[i]->pos;
 
   		for (int c = 0; c < i_connections; c++)
   		{
@@ -205,23 +197,24 @@ vector<Node*> PRM::buildShortest(Node* start, Node* goal)
 
 int PRM::changeDrawState()
 {
-  int num_lines = 0;
+  /*int num_lines = 0;
 
   if (draw_state == DRAW_ALL)
   {
     cout << "\n--->Drawing path only" << endl;
     draw_state = DRAW_PATH;
-    //num_lines = shortest_path.size();
+    num_lines = num_connections;
   }
   else if (draw_state == DRAW_PATH)
   {
     cout << "\n--->Drawing all connections" << endl;
     draw_state = DRAW_ALL;
     num_lines = num_connections;
+  }*/
 
-  }
+  cout << "---Reloading connections---" << endl;
 
-  return num_lines;
+  return num_connections;
 }
 
 Node* PRM::generateStart(int model_start, int model_verts)

@@ -29,7 +29,6 @@ class PRM
     int width = 1;
     int height = 1;
     float node_size = 0.25;
-    int num_connections = 0;
 
     state draw_state = DRAW_ALL;
 
@@ -40,8 +39,9 @@ class PRM
   public:
     //PUBLIC VARIABLES
     int num_nodes = 0;
-  	Node** node_arr;
+  	vector<Node*> node_vec;
     float connection_radius_sq = 10;
+    int num_connections = 0;
 
     float agent_size = 1.0;
     algorithm alg_state = UCS;
@@ -51,12 +51,6 @@ class PRM
     PRM();
     PRM(int w, int h, int num);
     ~PRM();
-
-    //SETTERS
-    void setNumNodes(int n);
-
-    //GETTERS
-    int getNumNodes();
 
     //OTHERS
     int generateNodes(int model_start, int model_verts, CSpace* cs);

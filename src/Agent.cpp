@@ -17,8 +17,9 @@ Agent::Agent(Node* s, Node* g) : WorldObject()
 
 Agent::~Agent()
 {
-  delete start_node;
-  delete goal_node;
+  //don't delete these here because PRM deletes them
+  //delete start_node;
+  //delete goal_node;
 }
 
 /*----------------------------*/
@@ -74,26 +75,31 @@ void Agent::calcPath(PRM* myPRM, CSpace* cs)
   float len_sq = 1;
   link_t l;
 
+  //push start and goal onto PRM's graph
+  myPRM->node_vec.push_back(start_node);
+  myPRM->node_vec.push_back(goal_node);
+
   for (int i = 0; i < num; i++)
   {
-    sToi = myPRM->node_arr[i]->pos - start_node->pos; //start --> i
-    gToi = myPRM->node_arr[i]->pos - goal_node->pos; //goal --> i
+    sToi = myPRM->node_vec[i]->pos - start_node->pos; //start --> i
+    gToi = myPRM->node_vec[i]->pos - goal_node->pos; //goal --> i
 
     //check for start to i
     len_sq = dotProduct(sToi, sToi);
     if (len_sq <= myPRM->connection_radius_sq) //close enough to connect
     {
-      printf("Connected node %i to start\n", i);
+      //printf("Connected node %i to start\n", i);
       //figure out if path connecting nodes is valid in CSpace
       if (cs->isValidSegment(sToi, start_node->pos, myPRM->agent_size))
       {
         //connect start to i
-        l = link_t(len_sq, myPRM->node_arr[i]);
+        l = link_t(len_sq, myPRM->node_vec[i]);
         start_node->neighbor_nodes.push_back(l);
 
         //connect i to start
         l = link_t(len_sq, start_node);
-        myPRM->node_arr[i]->neighbor_nodes.push_back(l);
+        myPRM->node_vec[i]->neighbor_nodes.push_back(l);
+        myPRM->num_connections += 2;
       }
     }
 
@@ -101,20 +107,24 @@ void Agent::calcPath(PRM* myPRM, CSpace* cs)
     len_sq = dotProduct(gToi, gToi);
     if (len_sq <= myPRM->connection_radius_sq) //close enough to connect
     {
-      printf("Connected node %i to goal\n", i);
+      //printf("Connected node %i to goal\n", i);
       //figure out if path connecting nodes is valid in CSpace
       if (cs->isValidSegment(gToi, goal_node->pos, myPRM->agent_size))
       {
         //connect goal to i
-        l = link_t(len_sq, myPRM->node_arr[i]);
+        l = link_t(len_sq, myPRM->node_vec[i]);
         goal_node->neighbor_nodes.push_back(l);
 
         //connect i to goal
         l = link_t(len_sq, goal_node);
-        myPRM->node_arr[i]->neighbor_nodes.push_back(l);
+        myPRM->node_vec[i]->neighbor_nodes.push_back(l);
+        myPRM->num_connections += 2;
       }
     }
   }
+
+  //update number of nodes AFTER connecting start and goal
+  myPRM->num_nodes += 2;
 
   //2. use PRM to calc shortest path
   cout << "Calculating shortest_path...." << endl;
