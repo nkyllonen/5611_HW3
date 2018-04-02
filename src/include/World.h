@@ -104,7 +104,7 @@ public:
 	bool loadModelData();
 	bool setupGraphics();
 	void draw(Camera * cam);
-	void init();
+	void init(int num_agents);
 	void changePRMState();
 
 };

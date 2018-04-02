@@ -128,7 +128,11 @@ int main(int argc, char *argv[]) {
 		myWorld->path_alg_weight = weight;
 	}
 
-	myWorld->init();
+	int num_agents = 0;
+	cout << "Enter number of agents: ";
+	cin >> num_agents;
+
+	myWorld->init(num_agents);
 
 	/////////////////////////////////
 	//SETUP CAMERA
@@ -208,10 +212,10 @@ int main(int argc, char *argv[]) {
 			SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0); //Set to full screen
 		}//END polling If
 
-		if (mouse_active)
+		/*if (mouse_active)
 		{
 			recentering = false;
-		}
+		}*/
 
 		//draw all WObjs
 		myWorld->draw(cam);

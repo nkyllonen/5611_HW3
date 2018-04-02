@@ -281,6 +281,12 @@ vector<Node*> PRM::UniformCost(Node* start_node, Node* goal_node)
   cout << "goal node at : ";
   goal_node->pos.print();
 
+  //mark all nodes as having been visited
+  for (int i = 0; i < node_vec.size(); i++)
+  {
+    node_vec[i]->visited = false;
+  }
+
   start_node->visited = true;            //mark start has having been visited
 
   //1. add starting node to PQ
@@ -376,6 +382,12 @@ vector<Node*> PRM::Astar(float weight, Node* start_node, Node* goal_node)
   start_node->pos.print();
   cout << "goal node at : ";
   goal_pos.print();
+
+  //mark all nodes as having been visited
+  for (int i = 0; i < node_vec.size(); i++)
+  {
+    node_vec[i]->visited = false;
+  }
 
   start_node->visited = true;            //mark start has having been visited
 

@@ -133,6 +133,7 @@ bool World::setupGraphics()
 	/////////////////////////////////
 	//SETUP CUBE SHADERS (model_vao attributes --> bound to model_vbo[0])
 	/////////////////////////////////
+	cout << "--------------------------------------------------" << endl;
 	phongProgram = util::LoadShader("Shaders/phongTex.vert", "Shaders/phongTex.frag");
 
 	//load in textures
@@ -337,7 +338,7 @@ void World::draw(Camera * cam)
 /*--------------------------------------------------------------*/
 // init : initializes floor and random nodes
 /*--------------------------------------------------------------*/
-void World::init()
+void World::init(int num_agents)
 {
 	//1. initialize floor
 	floor = new WorldObject(Vec3D(0,0,-0.1));				//set floor slightly lower so there's no issues displaying lines on top
@@ -392,19 +393,22 @@ void World::init()
 	//myPRM->printShortest();
 
 	//initialize myAgents
-	Agent* a = new Agent(myPRM->generateStart(CUBE_START, CUBE_VERTS), myPRM->generateGoal(CUBE_START, CUBE_VERTS));
-	a->setVertexInfo(SPHERE_START, SPHERE_VERTS);
+	for (int i = 0; i < num_agents; i++)
+	{
+		Agent* a = new Agent(myPRM->generateStart(CUBE_START, CUBE_VERTS), myPRM->generateGoal(CUBE_START, CUBE_VERTS));
+		a->setVertexInfo(SPHERE_START, SPHERE_VERTS);
 
-	mat.setAmbient(glm::vec3(0.5, 0, 0.9));
-	mat.setDiffuse(glm::vec3(0.5, 0, 0.9));
-	a->setMaterial(mat);
+		mat.setAmbient(glm::vec3(0.5, 0, 0.9));
+		mat.setDiffuse(glm::vec3(0.5, 0, 0.9));
+		a->setMaterial(mat);
 
-	float size = myPRM->agent_size;
-	a->setSize(Vec3D(size, size, size));
+		float size = myPRM->agent_size;
+		a->setSize(Vec3D(size, size, size));
 
-	myAgents.push_back(a);
+		myAgents.push_back(a);
+	}
 
-	cout << "Agent initialized" << endl;
+	cout << num_agents << " agents initialized" << endl;
 	cout << "--------------------------------------------------" << endl;
 
 	//determine agent paths

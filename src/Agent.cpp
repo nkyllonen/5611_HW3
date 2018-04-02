@@ -127,7 +127,7 @@ void Agent::calcPath(PRM* myPRM, CSpace* cs)
   myPRM->num_nodes += 2;
 
   //2. use PRM to calc shortest path
-  cout << "Calculating shortest_path...." << endl;
+  cout << "\nCalculating shortest_path...." << endl;
   path = myPRM->buildShortest(start_node, goal_node);
 
   //3. determine initial pos and vel from calculated path
