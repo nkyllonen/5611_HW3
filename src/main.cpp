@@ -193,7 +193,7 @@ int main(int argc, char *argv[]) {
 					onKeyDown(windowEvent.key, cam, myWorld);
 					break;
 				case SDL_MOUSEMOTION:
-					if (recentering)
+					/*if (recentering)
 					{
 						SDL_WarpMouseInWindow(window, screen_width / 2, screen_height / 2);
 						mouse_active = true;
@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
 						mouse_y = windowEvent.motion.y;
 						mouseMove(windowEvent.motion, cam, horizontal_angle, vertical_angle);
 						recentering = true;
-					}
+					}*/
 				default:
 					break;
 				}//END polling switch

@@ -17,7 +17,7 @@ PRM::PRM(int w, int h, int num)
   num_nodes = num;
   //node_vec = new Node*[num_nodes];
   //cout << "Allocated node_vec to length " << num_nodes << endl;
-  connection_radius_sq = w*4; //so we get everything connecting to each other
+  connection_radius_sq = pow(w, 1.5); //so we get everything connecting to each other
 }
 
 PRM::~PRM()
