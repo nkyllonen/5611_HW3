@@ -18,10 +18,11 @@ class CSpace
     //SETTERS
 
     //GETTERS
+    WorldObject* getObstacle(int i);
 
     //OTHERS
     void addObstacle(WorldObject* o);
-    bool isValidPosition(Vec3D p, float agent_radius);
+    int isValidPosition(Vec3D p, float agent_radius);
     bool isValidSegment(Vec3D AtoB, Vec3D ptA, float agent_radius);
     void draw(GLuint shaderProgram);
 

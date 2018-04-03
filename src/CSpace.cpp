@@ -23,6 +23,10 @@ CSpace::~CSpace()
 /*----------------------------*/
 // GETTERS
 /*----------------------------*/
+WorldObject* CSpace::getObstacle(int i)
+{
+  return obstacles[i];
+}
 
 /*----------------------------*/
 // OTHERS
@@ -32,7 +36,10 @@ void CSpace::addObstacle(WorldObject* o)
   obstacles.push_back(o);
 }
 
-bool CSpace::isValidPosition(Vec3D p, float agent_radius)
+//returns if a given position is valid
+// -1 = valid position
+// otherwise returns index of obstacle of intersection
+int CSpace::isValidPosition(Vec3D p, float agent_radius)
 {
   Vec3D dist_v;
   float dist_sq = 0, radius_sq = 0;
@@ -45,10 +52,10 @@ bool CSpace::isValidPosition(Vec3D p, float agent_radius)
     dist_v = obstacles[i]->getPos() - p;
     dist_sq = dotProduct(dist_v, dist_v);
 
-    if (dist_sq <= radius_sq) return false;
+    if (dist_sq <= radius_sq) return i;
   }
 
-  return true;
+  return -1;
 }
 
 //determine is vector connecting 2 nodes intersects with any obstacles

@@ -97,6 +97,7 @@ public:
 	algorithm path_alg = UCS;
 	int path_alg_weight = 0;
 	agent_type cur_agent_type = AGENTS;
+	bool drawPRM = true;
 
 	//CONSTRUCTORS AND DESTRUCTORS
 	World();

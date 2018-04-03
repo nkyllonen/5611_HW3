@@ -316,7 +316,8 @@ void onKeyDown(SDL_KeyboardEvent & event, Camera* cam, World* myWorld)
 	//CHANGE PATH DRAWING STATE WITH P
 	/////////////////////////////////
 	case SDLK_p:
-		myWorld->changePRMState();
+		//myWorld->changePRMState();
+		myWorld->drawPRM = !myWorld->drawPRM;
 		break;
 	/////////////////////////////////
 	//ADJUST AGENT SPEED WITH +/-

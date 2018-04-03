@@ -304,12 +304,12 @@ void World::draw(Camera * cam)
 
 	//draw PRM
 	glUniform1i(uniTexID, -1);
-	myPRM->drawNodes(phongProgram);
+	if (drawPRM) myPRM->drawNodes(phongProgram);
 
 	//draw objs in CSpace
 	//glBindVertexArray(obj_vao);
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj_ibo[0]);
-	glUniform1i(uniTexID, -1);
+	//glUniform1i(uniTexID, -1);
 
 	myCSpace->draw(phongProgram);
 
@@ -326,21 +326,24 @@ void World::draw(Camera * cam)
 		myFlock->update(0.001);
 	}
 
-	glUseProgram(flatProgram);
-	glBindVertexArray(line_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, line_vbo[0]); //Set the line_vbo as the active
+	if (drawPRM)
+	{
+		glUseProgram(flatProgram);
+		glBindVertexArray(line_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, line_vbo[0]); //Set the line_vbo as the active
 
-	//new uniforms for the flat shading program
-	GLint uniLineModel = glGetUniformLocation(flatProgram, "model");
-	GLint uniLineView = glGetUniformLocation(flatProgram, "view");
-	GLint uniLineProj = glGetUniformLocation(flatProgram, "proj");
+		//new uniforms for the flat shading program
+		GLint uniLineModel = glGetUniformLocation(flatProgram, "model");
+		GLint uniLineView = glGetUniformLocation(flatProgram, "view");
+		GLint uniLineProj = glGetUniformLocation(flatProgram, "proj");
 
-	glm::mat4 model;
-	glUniformMatrix4fv(uniLineModel, 1, GL_FALSE, glm::value_ptr(model));
-	glUniformMatrix4fv(uniLineView, 1, GL_FALSE, glm::value_ptr(view));
-	glUniformMatrix4fv(uniLineProj, 1, GL_FALSE, glm::value_ptr(proj));
+		glm::mat4 model;
+		glUniformMatrix4fv(uniLineModel, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(uniLineView, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(uniLineProj, 1, GL_FALSE, glm::value_ptr(proj));
 
-	myPRM->drawConnections(flatProgram);
+		myPRM->drawConnections(flatProgram);
+	}
 }
 
 /*--------------------------------------------------------------*/
@@ -373,7 +376,7 @@ void World::init()
 
 	myCSpace->addObstacle(obj);
 
-	/*WorldObject* obj2 = new WorldObject(Vec3D(width/3, -width/4, 0));
+	WorldObject* obj2 = new WorldObject(Vec3D(width/3, -width/4, 0));
 	obj2->setVertexInfo(SPHERE_START, SPHERE_VERTS);
 
 	mat.setAmbient(glm::vec3(0.7, 0.7, 0));
@@ -384,7 +387,7 @@ void World::init()
 	//obj->hasIBO = true;
 
 	myCSpace->addObstacle(obj2);
-	*/
+
 	//3. initialize all nodes with random positions along floor
 	num_nodes = myPRM->generateNodes(CUBE_START, CUBE_VERTS, myCSpace);
 	cout << "Generated " << num_nodes << " nodes" << endl;

@@ -14,6 +14,7 @@ Flock::Flock(int nf, int nl, PRM* myPRM, CSpace* cs, int model_start, int model_
 {
   num_followers = nf;
   num_leaders = nl;
+  myCSpace = cs;
 
   leaders = new Agent*[num_leaders];
   cout << "--------------------------------------------------" << endl;
@@ -47,8 +48,14 @@ Flock::Flock(int nf, int nl, PRM* myPRM, CSpace* cs, int model_start, int model_
   //initialize followers
   for (int i = 0; i < num_followers; i++)
   {
-    p = myPRM->getRandPosition();
-    p.z = 0;
+    //loop while checking if generated position is not valid
+    do
+    {
+      //subtract node_size so that they won't go over the edge of the area
+      p = myPRM->getRandPosition();
+      p.z = 0;
+    } while(cs->isValidPosition(p, size) != -1); //-1 = no collision
+
     p.print();
     followers[i] = new Agent();
     followers[i]->setPos(p);
@@ -90,9 +97,9 @@ void Flock::update(float dt)
   Vec3D total_diff;
   Vec3D diff;
   Vec3D heading;
-  float dist_sq = 1;
+  float dist = 1;
   int num_neighbors = 0;
-  //float size = followers[0]->getSize().x;
+  float size = followers[0]->getSize().x;
 
   //2. update followers using Boid forces
   for (int i = 0; i < num_followers; i++)
@@ -106,12 +113,15 @@ void Flock::update(float dt)
       if (i != j)
       {
         diff = followers[j]->getPos() - pos_i;
-        dist_sq = dotProduct(diff, diff);
+        dist = diff.getMagnitude();
 
-        if (dist_sq < neighborhood_r_sq)
+        if (dist < neighborhood_r)
         {
+          diff = (1.0/dist)*diff;       //find diff unit vector
+          //diff = (dist - 2*size)*diff;  //rescale diff to include extent of both agents
+
           //sum up values in here instead of later
-          total_diff = total_diff + (1.0/dist_sq)*diff;
+          total_diff = total_diff + (1.0/(dist - 2*size))*diff;
           total_pos = total_pos + followers[j]->getPos();
 
           heading = followers[j]->vel;
@@ -127,10 +137,12 @@ void Flock::update(float dt)
     for (int i = 0; i < num_leaders; i++)
     {
       diff = leaders[i]->getPos() - pos_i;
-      dist_sq = dotProduct(diff, diff);
+      dist = diff.getMagnitude();
+
+      diff = (1.0/dist)*diff;       //find diff unit vector
 
       //add the leader values as well
-      total_diff = total_diff + (1.0/dist_sq)*diff;
+      total_diff = total_diff + (1.0/(dist - 2*size))*diff;
       total_pos = total_pos + leaders[i]->getPos();
 
       //only find average heading of leaders since they are leading the Flock
@@ -152,10 +164,6 @@ void Flock::update(float dt)
     //net_force = net_force + k_coh*((1.0/(num_followers-1+num_leaders))*total_pos - pos_i);
     net_force = net_force + k_coh*((1.0/(num_neighbors))*total_pos - pos_i);
 
-    //cout << "net_force: ";
-    //net_force.print();
-
-    //2.6 apply force to follower i
     //cap acceleration
     float mag = net_force.getMagnitude();
     if (mag > max_acc)
@@ -171,8 +179,29 @@ void Flock::update(float dt)
     {
       //normalize and resize so it's the right length
       temp_v = (max_vel/mag)*temp_v;
+      mag = max_vel;
     }
 
+    //2.6 Obstacle avoidance force
+    //check an offset of where we're trying to go to check ahead of the agent
+    Vec3D temp_p = pos_i + 3*dt*temp_v;
+    int ob_i = myCSpace->isValidPosition(temp_p, size);
+    if (ob_i != -1) //-1 = no collision
+    {
+      //cout << "\nFollower-obstacle collision detected" << endl;
+      /*cout << "--pos_i : ";
+      pos_i.print();
+      cout << "--temp_p : ";
+      temp_p.print();*/
+      WorldObject* ob = myCSpace->getObstacle(ob_i);
+      Vec3D radial = temp_p - ob->getPos();
+      radial.normalize();
+
+      //add force away from center of obstacle
+      temp_v = temp_v + k_obs*radial;
+    }
+
+    //2.7 apply force to follower i
     followers[i]->vel = temp_v;
     followers[i]->setPos(pos_i + dt*temp_v);
 

@@ -72,7 +72,7 @@ int PRM::generateNodes(int model_start, int model_verts, CSpace* cs)
       //subtract node_size so that they won't go over the edge of the area
       pos = getRandPosition();
       pos.z = 0;
-    } while(!cs->isValidPosition(pos, agent_size));
+    } while(cs->isValidPosition(pos, agent_size) != -1); //-1 = no collision
 
 		temp = new Node(pos);
 
