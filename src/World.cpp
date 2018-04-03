@@ -395,6 +395,10 @@ void World::init()
 	cout << "\nAllocated lineData : " << total_lines * 6 << endl;
 
 	myPRM->loadLineVertices(lineData);
+
+	//4. tell PRM what algorithm to use
+	myPRM->alg_state = path_alg;
+	myPRM->alg_weight = path_alg_weight;
 }
 
 void World::changePRMState()

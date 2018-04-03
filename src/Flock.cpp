@@ -22,9 +22,9 @@ Flock::Flock(int nf, int nl, PRM* myPRM, CSpace* cs, int model_start, int model_
   cout << "Allocated array of " << num_followers << " followers" << endl;
 
   Material mat = Material();
-  mat.setAmbient(glm::vec3(0.7, 0.7, 0.7));
-  mat.setDiffuse(glm::vec3(0.7, 0.7, 0.7));
-  mat.setSpecular(glm::vec3(0, 0, 0));
+  mat.setAmbient(glm::vec3(0.5, 0, 0.9));
+	mat.setDiffuse(glm::vec3(0.5, 0, 0.9));
+	mat.setSpecular(glm::vec3(0, 0, 0));
 
   Node* start;
   Node* goal;
@@ -92,15 +92,13 @@ void Flock::update(float dt)
   Vec3D heading;
   float dist_sq = 1;
   int num_neighbors = 0;
+  //float size = followers[0]->getSize().x;
 
   //2. update followers using Boid forces
   for (int i = 0; i < num_followers; i++)
   {
     Vec3D pos_i = followers[i]->getPos();
-    //cout << "Follower " << i << " : " << endl;
-    //pos_i.print();
     Vec3D vel_i = followers[i]->vel;
-    //vel_i.print();
 
     //2.1 find neighboring agents of follower i
     for (int j = 0; j < num_followers; j++)
@@ -116,9 +114,9 @@ void Flock::update(float dt)
           total_diff = total_diff + (1.0/dist_sq)*diff;
           total_pos = total_pos + followers[j]->getPos();
 
-          /*heading = followers[j]->vel;
-          heading.normalize();
-          total_heading = total_heading + heading;*/
+          heading = followers[j]->vel;
+          //heading.normalize();
+          total_heading = total_heading + heading;
 
           num_neighbors ++;
         }
@@ -137,7 +135,7 @@ void Flock::update(float dt)
 
       //only find average heading of leaders since they are leading the Flock
       heading = leaders[i]->vel;
-      heading.normalize();
+      //heading.normalize();
       total_heading = total_heading + heading;
 
       num_neighbors ++;
@@ -148,10 +146,11 @@ void Flock::update(float dt)
 
     //2.4 Alignment force
     //net_force = net_force + k_all*((1.0/num_neighbors)*total_heading - followers[i]->vel);
-    net_force = net_force + k_all*((1.0/num_leaders)*total_heading - vel_i);
+    net_force = net_force + k_all*((1.0/num_neighbors)*total_heading - vel_i);
 
     //2.5 Cohesion force
-    net_force = net_force + k_coh*((1.0/num_neighbors)*total_pos - pos_i);
+    //net_force = net_force + k_coh*((1.0/(num_followers-1+num_leaders))*total_pos - pos_i);
+    net_force = net_force + k_coh*((1.0/(num_neighbors))*total_pos - pos_i);
 
     //cout << "net_force: ";
     //net_force.print();

@@ -16,7 +16,7 @@ class Agent : public WorldObject
   public:
     //PUBLIC VARIABLES
     Vec3D vel;
-    float speed = 10;
+    float speed = 20;
     Node* start_node;
     Node* goal_node;
 
