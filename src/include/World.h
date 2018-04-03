@@ -33,9 +33,16 @@
 #include "PRM.h"
 #include "CSpace.h"
 #include "Agent.h"
+#include "Flock.h"
 
 #include "timerutil.h"
 #include "tiny_obj_loader.h"
+
+enum agent_type
+{
+	FLOCK,
+	AGENTS
+};
 
 class World{
 private:
@@ -86,8 +93,10 @@ public:
 	PRM* myPRM;
 	vector<Agent*> myAgents;
 	int cur_agent_i = 0;
+	Flock* myFlock;
 	algorithm path_alg = UCS;
 	int path_alg_weight = 0;
+	agent_type cur_agent_type = AGENTS;
 
 	//CONSTRUCTORS AND DESTRUCTORS
 	World();
@@ -104,8 +113,10 @@ public:
 	bool loadModelData();
 	bool setupGraphics();
 	void draw(Camera * cam);
-	void init(int num_agents);
+	void init();
 	void changePRMState();
+	void initAgents(int num_agents);
+	void initFlock(int nf, int nl);
 
 };
 

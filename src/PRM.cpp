@@ -27,8 +27,6 @@ PRM::~PRM()
 	{
 		delete node_vec[i];
 	}
-
-	//delete[] node_vec;
 }
 
 /*----------------------------*/
@@ -38,6 +36,15 @@ PRM::~PRM()
 /*----------------------------*/
 // GETTERS
 /*----------------------------*/
+Vec3D PRM::getRandPosition()
+{
+  float x = 0, y = 0, z = 0;
+  x = ((double)rand()/RAND_MAX)*(width - agent_size) - (width/2.0);
+  y = ((double)rand()/RAND_MAX)*(height - agent_size) - (height/2.0);
+  z = ((double)rand()/RAND_MAX)*(height - agent_size) - (height/2.0);
+
+  return Vec3D(x,y,z);
+}
 
 /*----------------------------*/
 // OTHERS
@@ -51,7 +58,6 @@ int PRM::generateNodes(int model_start, int model_verts, CSpace* cs)
   Material mat = Material();
 	mat.setSpecular(glm::vec3(0, 0, 0));
 
-	float x = 0, y = 0, z = 0;
   Node* temp;
 
   //set color for in between nodes
@@ -64,9 +70,8 @@ int PRM::generateNodes(int model_start, int model_verts, CSpace* cs)
     do
     {
       //subtract node_size so that they won't go over the edge of the area
-      x = ((double)rand()/RAND_MAX)*(width - agent_size) - (width/2.0);
-      y = ((double)rand()/RAND_MAX)*(height - agent_size) - (height/2.0);
-      pos = Vec3D(x,y,z);
+      pos = getRandPosition();
+      pos.z = 0;
     } while(!cs->isValidPosition(pos, agent_size));
 
 		temp = new Node(pos);

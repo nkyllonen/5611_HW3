@@ -61,7 +61,6 @@ void mouseMove(SDL_MouseMotionEvent & event, Camera * player, float horizontal_a
 int main(int argc, char *argv[]) {
 	srand(time(0));
 
-	//CHECK FOR WIDTH AND HEIGHT VALUES
 	if (argc == 4 && *argv[3] != 'U')
 	{
 		cout << "\nERROR: Incorrect usage. Expected ./a.out WIDTH HEIGHT U(UCS)\n";
@@ -73,6 +72,7 @@ int main(int argc, char *argv[]) {
 		exit(0);
 	}
 
+	//CHECK FOR WIDTH AND HEIGHT VALUES
 	int w = atoi(argv[1]);
 	int h = atoi(argv[2]);
 	char alg = *argv[3];
@@ -128,11 +128,40 @@ int main(int argc, char *argv[]) {
 		myWorld->path_alg_weight = weight;
 	}
 
-	int num_agents = 0;
-	cout << "Enter number of agents: ";
-	cin >> num_agents;
+	char c;
+	cout << "Would you like to simulate Flocks(F) or Agents(A)? ";
+	cin >> c;
+	if (c == 'F')
+	{
+		myWorld->cur_agent_type = FLOCK;
 
-	myWorld->init(num_agents);
+		int f = 0, l = 0;
+		cout << "Enter number of followers and leaders: ";
+		cin >> f >> l;
+
+		myWorld->init();
+		myWorld->initFlock(f, l);
+	}
+	else if (c == 'A')
+	{
+		myWorld->cur_agent_type = AGENTS;
+
+		int num_agents = 0;
+		cout << "Enter number of agents: ";
+		cin >> num_agents;
+
+		myWorld->init();
+		myWorld->initAgents(num_agents);
+	}
+	else
+	{
+		cout << "ERROR. Incorrect option entered." << endl;
+		//Clean up
+		myWorld->~World();
+		SDL_GL_DeleteContext(context);
+		SDL_Quit();
+		exit(0);
+	}
 
 	/////////////////////////////////
 	//SETUP CAMERA
@@ -294,13 +323,19 @@ void onKeyDown(SDL_KeyboardEvent & event, Camera* cam, World* myWorld)
 	/////////////////////////////////
 	case SDLK_PLUS:
 	case SDLK_KP_PLUS:
-		myWorld->myAgents[myWorld->cur_agent_i]->speed += 1.0;
-		cout << "--increased speed to " << myWorld->myAgents[myWorld->cur_agent_i]->speed << "--" << endl;
+		if (myWorld->cur_agent_type == AGENTS)
+		{
+			myWorld->myAgents[myWorld->cur_agent_i]->speed += 1.0;
+			cout << "--increased speed to " << myWorld->myAgents[myWorld->cur_agent_i]->speed << "--" << endl;
+		}
 		break;
 	case SDLK_MINUS:
 	case SDLK_KP_MINUS:
-		myWorld->myAgents[myWorld->cur_agent_i]->speed -= 1.0;
-		cout << "--decreased speed to " << myWorld->myAgents[myWorld->cur_agent_i]->speed << "--" << endl;
+		if (myWorld->cur_agent_type == AGENTS)
+		{
+			myWorld->myAgents[myWorld->cur_agent_i]->speed -= 1.0;
+			cout << "--decreased speed to " << myWorld->myAgents[myWorld->cur_agent_i]->speed << "--" << endl;
+		}
 		break;
 	default:
 		printf("ERROR: Invalid key pressed (%s)\n", SDL_GetKeyName(event.keysym.sym));

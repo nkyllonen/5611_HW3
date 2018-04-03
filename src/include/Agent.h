@@ -11,11 +11,11 @@
 class Agent : public WorldObject
 {
   private:
-    Vec3D vel;
     std::vector<Node*> path;
 
   public:
     //PUBLIC VARIABLES
+    Vec3D vel;
     float speed = 10;
     Node* start_node;
     Node* goal_node;

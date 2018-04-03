@@ -52,6 +52,9 @@ class PRM
     PRM(int w, int h, int num);
     ~PRM();
 
+    //GETTERS
+    Vec3D getRandPosition();
+
     //OTHERS
     int generateNodes(int model_start, int model_verts, CSpace* cs);
     int connectNodes(CSpace* cs);

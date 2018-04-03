@@ -39,6 +39,8 @@ World::~World()
 	{
 		delete myAgents[i];
 	}
+
+	if (cur_agent_type == FLOCK) delete myFlock;
 }
 
 /*----------------------------*/
@@ -318,6 +320,12 @@ void World::draw(Camera * cam)
 		myAgents[i]->update(0.001);
 	}
 
+	if (cur_agent_type == FLOCK)
+	{
+		myFlock->draw(phongProgram);
+		myFlock->update(0.001);
+	}
+
 	glUseProgram(flatProgram);
 	glBindVertexArray(line_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, line_vbo[0]); //Set the line_vbo as the active
@@ -338,7 +346,7 @@ void World::draw(Camera * cam)
 /*--------------------------------------------------------------*/
 // init : initializes floor and random nodes
 /*--------------------------------------------------------------*/
-void World::init(int num_agents)
+void World::init()
 {
 	//1. initialize floor
 	floor = new WorldObject(Vec3D(0,0,-0.1));				//set floor slightly lower so there's no issues displaying lines on top
@@ -365,7 +373,7 @@ void World::init(int num_agents)
 
 	myCSpace->addObstacle(obj);
 
-	WorldObject* obj2 = new WorldObject(Vec3D(width/3, -width/4, 0));
+	/*WorldObject* obj2 = new WorldObject(Vec3D(width/3, -width/4, 0));
 	obj2->setVertexInfo(SPHERE_START, SPHERE_VERTS);
 
 	mat.setAmbient(glm::vec3(0.7, 0.7, 0));
@@ -376,7 +384,7 @@ void World::init(int num_agents)
 	//obj->hasIBO = true;
 
 	myCSpace->addObstacle(obj2);
-
+	*/
 	//3. initialize all nodes with random positions along floor
 	num_nodes = myPRM->generateNodes(CUBE_START, CUBE_VERTS, myCSpace);
 	cout << "Generated " << num_nodes << " nodes" << endl;
@@ -387,35 +395,6 @@ void World::init(int num_agents)
 	cout << "\nAllocated lineData : " << total_lines * 6 << endl;
 
 	myPRM->loadLineVertices(lineData);
-
-	//cout << "Calculating shortest_path...." << endl;
-	//path_ready = myPRM->buildShortest();
-	//myPRM->printShortest();
-
-	//initialize myAgents
-	for (int i = 0; i < num_agents; i++)
-	{
-		Agent* a = new Agent(myPRM->generateStart(CUBE_START, CUBE_VERTS), myPRM->generateGoal(CUBE_START, CUBE_VERTS));
-		a->setVertexInfo(SPHERE_START, SPHERE_VERTS);
-
-		mat.setAmbient(glm::vec3(0.5, 0, 0.9));
-		mat.setDiffuse(glm::vec3(0.5, 0, 0.9));
-		a->setMaterial(mat);
-
-		float size = myPRM->agent_size;
-		a->setSize(Vec3D(size, size, size));
-
-		myAgents.push_back(a);
-	}
-
-	cout << num_agents << " agents initialized" << endl;
-	cout << "--------------------------------------------------" << endl;
-
-	//determine agent paths
-	for (int i = 0; i < myAgents.size(); i++)
-	{
-		myAgents[i]->calcPath(myPRM, myCSpace);
-	}
 }
 
 void World::changePRMState()
@@ -437,6 +416,40 @@ void World::changePRMState()
 	glBindVertexArray(line_vao); //Bind the line_vao to the current context
 	glBindBuffer(GL_ARRAY_BUFFER, line_vbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, total_lines * 6 * sizeof(float), lineData, GL_DYNAMIC_DRAW);
+}
+
+void World::initAgents(int num_agents)
+{
+	Material mat = Material();
+	mat.setAmbient(glm::vec3(0.5, 0, 0.9));
+	mat.setDiffuse(glm::vec3(0.5, 0, 0.9));
+	mat.setSpecular(glm::vec3(0, 0, 0));
+
+	for (int i = 0; i < num_agents; i++)
+	{
+		Agent* a = new Agent(myPRM->generateStart(CUBE_START, CUBE_VERTS), myPRM->generateGoal(CUBE_START, CUBE_VERTS));
+		a->setVertexInfo(SPHERE_START, SPHERE_VERTS);
+		a->setMaterial(mat);
+
+		float size = myPRM->agent_size;
+		a->setSize(Vec3D(size, size, size));
+
+		myAgents.push_back(a);
+	}
+
+	cout << num_agents << " agents initialized" << endl;
+	cout << "--------------------------------------------------" << endl;
+
+	//determine agent paths
+	for (int i = 0; i < myAgents.size(); i++)
+	{
+		myAgents[i]->calcPath(myPRM, myCSpace);
+	}
+}
+
+void World::initFlock(int nf, int nl)
+{
+	myFlock = new Flock(nf, nl, myPRM, myCSpace, SPHERE_START, SPHERE_VERTS);
 }
 
 /*----------------------------*/
