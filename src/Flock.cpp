@@ -100,6 +100,7 @@ void Flock::update(float dt)
     //cout << "Follower " << i << " : " << endl;
     //pos_i.print();
     Vec3D vel_i = followers[i]->vel;
+    //vel_i.print();
 
     //2.1 find neighboring agents of follower i
     for (int j = 0; j < num_followers; j++)
@@ -152,6 +153,9 @@ void Flock::update(float dt)
     //2.5 Cohesion force
     net_force = net_force + k_coh*((1.0/num_neighbors)*total_pos - pos_i);
 
+    //cout << "net_force: ";
+    //net_force.print();
+
     //2.6 apply force to follower i
     //cap acceleration
     float mag = net_force.getMagnitude();
@@ -171,6 +175,7 @@ void Flock::update(float dt)
     }
 
     followers[i]->vel = temp_v;
+    followers[i]->setPos(pos_i + dt*temp_v);
 
     //reset for the next follower
     net_force = Vec3D();

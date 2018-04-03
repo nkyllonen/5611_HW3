@@ -5,12 +5,12 @@
 /*----------------------------*/
 Agent::Agent() : WorldObject()
 {
-  vel = Vec3D(rand()%RAND_MAX, rand()%RAND_MAX, 0);
+  vel = Vec3D(rand()%RAND_MAX + 1, rand()%RAND_MAX + 1, 0);
 }
 
 Agent::Agent(Node* s, Node* g) : WorldObject()
 {
-  vel = Vec3D(rand()%RAND_MAX, rand()%RAND_MAX, 0);
+  vel = Vec3D(rand()%RAND_MAX + 1, rand()%RAND_MAX + 1, 0);
   start_node = s;
   goal_node = g;
 }
